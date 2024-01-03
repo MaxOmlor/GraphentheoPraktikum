@@ -1,0 +1,3 @@
+[submodule "fitch-graph-prak"]
+	path = fitch-graph-prak
+	url = https://github.com/bsfaqu/fitch-graph-prak.git
