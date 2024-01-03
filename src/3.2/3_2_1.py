@@ -44,7 +44,7 @@ def recreate_symmetry(l: list[tuple[int, int]]):
 def remove_n_random_items(l: list, n: int):
     result_list = l.copy()
     for i in range(n):
-        ran_index = random.randint(0, len(result_list))
+        ran_index = random.randint(0, len(result_list)-1)
         result_list.pop(ran_index)
 
     return result_list
@@ -89,4 +89,5 @@ if __name__ == '__main__':
     partial_rel = create_partial(rel, .2)
     print(f'{partial_rel=}')
 
-    
+    relative_size = get_rel_size(partial_rel)/get_rel_size(rel)
+    print(f'{relative_size=}')
