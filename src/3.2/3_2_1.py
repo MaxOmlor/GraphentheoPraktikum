@@ -14,7 +14,7 @@ def create_partial(rel: dict[typing.Any, list[tuple[int, int]]], percent: float)
     rel0_count = len(rel[0])
     reld_count = len(rel['d'])
 
-    total_count = sum(rel1_count, rel0_count, reld_count)
+    total_count = sum([rel1_count, rel0_count, reld_count])
 
     sample_count = round(total_count*percent)
 
@@ -45,7 +45,7 @@ def remove_n_random_items(l: list, n: int):
     result_list = l.copy()
     for i in range(n):
         ran_index = random.randint(0, len(result_list))
-        result_list.remove(ran_index)
+        result_list.pop(ran_index)
 
     return result_list
 
@@ -72,9 +72,12 @@ def count_in_range(nums: list[int], start: int, end: int):
             count += 1
     return count
 
+# get relation size
+def get_rel_size(rel: dict[typing.Any, list[tuple[int, int]]]):
+    return sum([len(rel[1]), len(rel[0]), len(rel['d'])])
 
-if __name__ == 'main':
 
+if __name__ == '__main__':
     graph_path = 'graph-prak-GFH/graph-prak-GFH/n10/D0.25_L0.5_H1.0/D0.25_L0.5_H1.0_n10_0/dFitch.graphml'
 
     nx_graph = nx.read_graphml(graph_path)
@@ -85,3 +88,5 @@ if __name__ == 'main':
 
     partial_rel = create_partial(rel, .2)
     print(f'{partial_rel=}')
+
+    
