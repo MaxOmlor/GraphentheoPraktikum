@@ -1,3 +1,6 @@
 [submodule "fitch-graph-prak"]
 	path = fitch-graph-prak
 	url = https://github.com/bsfaqu/fitch-graph-prak.git
+[submodule "AsymmeTree"]
+	path = AsymmeTree
+	url = https://github.com/david-schaller/AsymmeTree.git
