@@ -1,15 +1,87 @@
 import networkx as nx
 import os
 import sys
+import random
+import typing
 
 sys.path.append('fitch-graph-prak')
 
 from lib import graph_to_rel
 
-graph_path = 'graph-prak-GFH/graph-prak-GFH/n10/D0.25_L0.5_H1.0/D0.25_L0.5_H1.0_n10_0/dFitch.graphml'
+def create_partial(rel: dict[typing.Any, list[tuple[int, int]]], percent: float):
+    # get subset counts
+    rel1_count = len(rel[1])
+    rel0_count = len(rel[0])
+    reld_count = len(rel['d'])
 
-nx_graph = nx.read_graphml(graph_path)
-print('graph loaded')
+    total_count = sum(rel1_count, rel0_count, reld_count)
 
-rel = graph_to_rel(nx_graph)
-print(f'{rel=}')
+    sample_count = round(total_count*percent)
+
+    random_nums = random_numbers(sample_count, total_count)
+
+    rel1_ran_count = count_in_range(random_nums, 0, rel1_count)
+    rel0_ran_count = count_in_range(random_nums, rel1_count, rel1_count+rel0_count)
+    reld_ran_count = count_in_range(random_nums, rel1_count+rel0_count, total_count)
+
+    rel1_partial = recreate_symmetry(remove_n_random_items(sort_tuples(rel[1]), rel1_ran_count))
+    rel0_partial = recreate_symmetry(remove_n_random_items(sort_tuples(rel[0]), rel0_ran_count))
+    reld_partial = remove_n_random_items(rel['d'], reld_ran_count)
+
+    return {
+        1: rel1_partial,
+        0: rel0_partial,
+        'd': reld_partial,
+    }
+
+def recreate_symmetry(l: list[tuple[int, int]]):
+    result_list = l
+    for t in l:
+        result_list.append((t[1], t[0]))
+    result_list.extend(l)
+    return result_list
+
+def remove_n_random_items(l: list, n: int):
+    result_list = l.copy()
+    for i in range(n):
+        ran_index = random.randint(0, len(result_list))
+        result_list.remove(ran_index)
+
+    return result_list
+
+def sort_tuples(tuples: list[tuple[int, int]]):
+    return [t for t in tuples if t[0] > t[1]]
+
+
+# generate n unique random numbers between 1 and m
+def random_numbers(n: int, m: int):
+    if n > m:
+        raise ValueError('n must be smaller than m')
+    random_numbers = []
+    while len(random_numbers) < n:
+        r = random.randint(0, m)
+        if r not in random_numbers:
+            random_numbers.append(r)
+    return random_numbers
+
+# get how many numbers in a list are in a range
+def count_in_range(nums: list[int], start: int, end: int):
+    count = 0
+    for num in nums:
+        if start <= num < end:
+            count += 1
+    return count
+
+
+if __name__ == 'main':
+
+    graph_path = 'graph-prak-GFH/graph-prak-GFH/n10/D0.25_L0.5_H1.0/D0.25_L0.5_H1.0_n10_0/dFitch.graphml'
+
+    nx_graph = nx.read_graphml(graph_path)
+    print('graph loaded')
+
+    rel = graph_to_rel(nx_graph)
+    print(f'{rel=}')
+
+    partial_rel = create_partial(rel, .2)
+    print(f'{partial_rel=}')
