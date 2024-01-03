@@ -35,7 +35,7 @@ def create_partial(rel: dict[typing.Any, list[tuple[int, int]]], percent: float)
     }
 
 def recreate_symmetry(l: list[tuple[int, int]]):
-    result_list = l
+    result_list = l.copy()
     for t in l:
         result_list.append((t[1], t[0]))
     result_list.extend(l)
