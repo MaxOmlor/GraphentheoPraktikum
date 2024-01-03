@@ -24,8 +24,8 @@ def create_partial(rel: dict[typing.Any, list[tuple[int, int]]], percent: float)
     rel0_ran_count = count_in_range(random_nums, rel1_count, rel1_count+rel0_count)
     reld_ran_count = count_in_range(random_nums, rel1_count+rel0_count, total_count)
 
-    rel1_partial = recreate_symmetry(remove_n_random_items(sort_tuples(rel[1]), rel1_ran_count))
-    rel0_partial = recreate_symmetry(remove_n_random_items(sort_tuples(rel[0]), rel0_ran_count))
+    rel1_partial = recreate_symmetry(remove_n_random_items(sort_tuples(rel[1]), round(rel1_ran_count/2)))
+    rel0_partial = recreate_symmetry(remove_n_random_items(sort_tuples(rel[0]), round(rel0_ran_count/2)))
     reld_partial = remove_n_random_items(rel['d'], reld_ran_count)
 
     return {
@@ -38,7 +38,6 @@ def recreate_symmetry(l: list[tuple[int, int]]):
     result_list = l.copy()
     for t in l:
         result_list.append((t[1], t[0]))
-    result_list.extend(l)
     return result_list
 
 def remove_n_random_items(l: list, n: int):
