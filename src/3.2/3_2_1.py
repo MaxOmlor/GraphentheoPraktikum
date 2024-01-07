@@ -92,7 +92,8 @@ def get_rel_size(rel: dict[typing.Any, list[tuple[int, int]]]):
 
 
 if __name__ == '__main__':
-    graph_path = 'graph-prak-GFH/graph-prak-GFH/n10/D0.25_L0.5_H1.0/D0.25_L0.5_H1.0_n10_0/dFitch.graphml'
+    # graph_path = 'graph-prak-GFH/graph-prak-GFH/n10/D0.25_L0.5_H1.0/D0.25_L0.5_H1.0_n10_0/dFitch.graphml'
+    graph_path = 'graph-prak-GFH/graph-prak-GFH/n30/D0.3_L0.3_H0.9/D0.3_L0.3_H0.9_n30_0/dFitch.graphml'
 
     nx_graph = nx.read_graphml(graph_path)
     print('graph loaded')
