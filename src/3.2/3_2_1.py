@@ -8,7 +8,7 @@ sys.path.append('fitch-graph-prak')
 
 from lib import graph_to_rel
 
-def create_partial(rel: dict[typing.Any, list[tuple[int, int]]], percent: float):
+def create_partial(rel: dict[typing.Any, list[tuple[int, int]]], percent: float, remove_all_directed: bool = False):
     # get subset counts
     rel1_count = len(rel[1])
     rel0_count = len(rel[0])
@@ -16,9 +16,20 @@ def create_partial(rel: dict[typing.Any, list[tuple[int, int]]], percent: float)
 
     total_count = sum([rel1_count, rel0_count, reld_count])
 
+    # if all directed edges should be removed, remove them, and adjust the remaining percent to be removed.
+    if(remove_all_directed):
+        percent = max(percent - reld_count/total_count,0.)
+        print(f'{percent=}')
+        # generate random numbers only in the range of the remaining edges
+        remove_in_range = total_count - reld_count 
+    else:
+        # or remove the percent of all edges
+        remove_in_range = total_count
+
     sample_count = round(total_count*percent)
 
-    random_nums = random_numbers(sample_count, total_count)
+    random_nums = random_numbers(sample_count, remove_in_range)
+
 
     rel1_ran_count = count_in_range(random_nums, 0, rel1_count)
     rel0_ran_count = count_in_range(random_nums, rel1_count, rel1_count+rel0_count)
@@ -26,7 +37,11 @@ def create_partial(rel: dict[typing.Any, list[tuple[int, int]]], percent: float)
 
     rel1_partial = recreate_symmetry(remove_n_random_items(sort_tuples(rel[1]), round(rel1_ran_count/2)))
     rel0_partial = recreate_symmetry(remove_n_random_items(sort_tuples(rel[0]), round(rel0_ran_count/2)))
-    reld_partial = remove_n_random_items(rel['d'], reld_ran_count)
+
+    if(remove_all_directed):
+        reld_partial = []
+    else:
+        reld_partial = remove_n_random_items(rel['d'], reld_ran_count)
 
     return {
         1: rel1_partial,
@@ -83,10 +98,8 @@ if __name__ == '__main__':
     print('graph loaded')
 
     rel = graph_to_rel(nx_graph)
-    print(f'{rel=}')
 
     partial_rel = create_partial(rel, .2)
-    print(f'{partial_rel=}')
 
     relative_size = get_rel_size(partial_rel)/get_rel_size(rel)
     print(f'{relative_size=}')
