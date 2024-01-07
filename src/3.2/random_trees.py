@@ -69,7 +69,6 @@ class TreeAutomaton:
         self.add_node(self.initial_state)
         self.generate_tree_rec(0)
         self.current_nodes = 0
-        relabel_leaves(tree)
         return self.tree
 
 
@@ -94,24 +93,25 @@ def generate_fitch_cograph(w_2_terminals = 4., w_1_terminal = 2., w_0_terminals 
         ("E0", "e", "E0", "", w_1_terminal * factor_e0),
         ("E0", "e", "", "E0", w_1_terminal * factor_e0),
         ("E0", "e", "E0", "E0", w_0_terminals * factor_e0),
-        ("E0D", "e", "", "", w_2_terminals * factor_e0),
-        ("E0D", "e", "E0", "", 2.0),
-        ("E0D", "e", "", "E0", 2.0),
-        ("E0D", "e", "E0", "E0", 1.0),
-        ("E0D", "u", "", "", 3.0),
-        ("E0D", "u", "E0D", "", 2.0),
-        ("E0D", "u", "", "E0D", 2.0),
-        ("E0D", "u", "E0D", "E0D", 1.0),
+        ("E0D", "e", "", "", w_2_terminals* factor_e0),
+        ("E0D", "e", "E0", "", w_1_terminal * factor_e0),
+        ("E0D", "e", "", "E0", w_1_terminal * factor_e0),  
+        ("E0D", "e", "E0", "E0", w_0_terminals * factor_e0),
+        ("E0D", "u", "", "", w_2_terminals),
+        ("E0D", "u", "E0D", "", w_1_terminal),
+        ("E0D", "u", "", "E0D", w_1_terminal),
+        ("E0D", "u", "E0D", "E0D", w_0_terminals),
     ]
     initial_state = "E01D"
     A = TreeAutomaton(states, alphabet, transitions, initial_state)
     tree = A.generate_tree()
+    relabel_leaves(tree)
     return tree
 
 ### Generate 100 trees, and check their sizes
 sizes = []
-for i in range(100):
-    tree = A.generate_tree()
+for i in range(10000):
+    tree = generate_fitch_cograph(3,2,1,.5,1)
     sizes.append(len(tree.nodes))
 
 print("Average size of 100 trees: " + str(sum(sizes)/len(sizes)))
