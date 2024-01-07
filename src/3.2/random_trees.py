@@ -72,8 +72,8 @@ class TreeAutomaton:
         return self.tree
 
 
-# Sets up a probabilistic tree automaton that generates a random fitch_cograph and return said tree
-def generate_fitch_cograph(w_2_terminals = 4., w_1_terminal = 2., w_0_terminals = 1., factor_e0 = 1., factor_e1 = 1.):
+# Sets up transitions of a probabilistic tree automaton that generates a random fitch_cograph and return said tree
+def generate_fitch_cotree(w_2_terminals = 4., w_1_terminal = 2., w_0_terminals = 1., factor_e0 = 1., factor_e1 = 1.):
     states = ['E01D', 'E0', 'E0D']
     alphabet = ["", "e", "b", "u"]
     transitions = [
@@ -108,13 +108,25 @@ def generate_fitch_cograph(w_2_terminals = 4., w_1_terminal = 2., w_0_terminals 
     relabel_leaves(tree)
     return tree
 
-### Generate 100 trees, and check their sizes
-sizes = []
-for i in range(10000):
-    tree = generate_fitch_cograph(3,2,1,.5,1)
-    sizes.append(len(tree.nodes))
+def generate_fitch_graph(tree: nx.DiGraph):
+    rel = lib.cotree_to_rel(tree)
+    #count leaves
+    nodes = sum([tree.out_degree(node) == 0 for node in tree.nodes]) 
+    fitch = lib.rel_to_fitch(rel, range(nodes))
+    return fitch
 
-print("Average size of 100 trees: " + str(sum(sizes)/len(sizes)))
-#median
-sizes.sort()
-print("Median size of 100 trees: " + str(sizes[len(sizes)//2]))
+### if main
+if __name__ == "__main__":
+    #set seed
+    random.seed(42)
+
+    #create output folder
+    os.makedirs("generated_testset", exist_ok=True)
+
+    #generate trees and graphs
+    for i in range(100):
+        tree = generate_fitch_cotree()
+        fitch = generate_fitch_graph(tree)
+        #save trees and graphs
+        nx.write_graphml(tree, f"generated_testset/cotree_{i}.graphml")
+        nx.write_graphml(fitch, f"generated_testset/fitchgraph_{i}.graphml")
