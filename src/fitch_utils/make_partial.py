@@ -1,5 +1,4 @@
 import networkx as nx
-import os
 import sys
 import random
 import typing

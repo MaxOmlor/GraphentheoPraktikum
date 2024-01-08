@@ -2,10 +2,8 @@ import networkx as nx
 import os
 import sys
 import random
-import typing
-import hashlib
 import argparse
-import make_partial
+import fitch_utils.make_partial
 
 sys.path.append('fitch-graph-prak')
 
