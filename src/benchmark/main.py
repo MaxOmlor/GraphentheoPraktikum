@@ -26,14 +26,18 @@ def create_tree_data(num_trees: int, min_size: int=0, max_size: int=math.inf):
     trees = []
     hashes = set()
 
+    pbar = tqdm(total=num_trees, desc='create trees  ')
     while len(hashes) < num_trees:
         tree = generate_random_cotree()
         leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
         if min_size <= leaves <= max_size:
             hashed = hash(tree)
+        if min_size <= leaves <= max_size:
             if hashed not in hashes:
                 hashes.add(hashed)
                 trees.append(tree)
+                pbar.update(1)
+    pbar.close()
     return trees
 
 ### reads the file, reads the paths in that file and loads those trees
@@ -96,7 +100,8 @@ def run_benchmark(args):
     ### run alg1
     results = []
     # for i in range(len(trees)):
-    for tree, rel, partial in tqdm(zip(trees, relations, partials), 'run benchmark'):
+    pbar = tqdm(total=len(trees), desc='run benchmarks')
+    for tree, rel, partial in zip(trees, relations, partials):
         leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
         tree_hash = hash(tree)
 
@@ -124,6 +129,8 @@ def run_benchmark(args):
             
             result = lib.check_fitch_graph(tree)
             results.append({'sat': result, 'tree': tree_hash, 'alg': 'SAT'})
+        pbar.update(1)
+    pbar.close()
     return results
 
 if __name__ == '__main__':
@@ -158,7 +165,7 @@ if __name__ == '__main__':
 
 
     f = Figlet(font='slant')
-    print(f.renderText('Benchmark'))
+    print(f.renderText('Benchmark...'))
     results = run_benchmark(args)
     dict_list_to_csv(results, args.output)
     
