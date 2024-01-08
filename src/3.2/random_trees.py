@@ -118,7 +118,7 @@ def generate_fitch_graph(tree: nx.DiGraph):
     fitch = lib.rel_to_fitch(rel, range(nodes))
     return fitch
 
-def generate_random_partial(percent: float, min_size: int = 3, remove_all_directed: bool = False):
+def generate_random_cotree(min_size: int = 3):
     ### generate random cotree until it has at least min_size leaves
     found = False
     while not found:
@@ -126,10 +126,15 @@ def generate_random_partial(percent: float, min_size: int = 3, remove_all_direct
         leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
         if leaves >= min_size:
             found = True
+    return tree
+
+def generate_random_partial(percent: float, min_size: int = 3, remove_all_directed: bool = False):
+    ### generate random cotree
+    tree = generate_random_cotree(min_size)
     ###convert to rel
     rel = lib.cotree_to_rel(tree)
     ### generate partial rel
-    partial_rel = create_partial(rel, percent, remove_all_directed)
+    partial_rel = make_partial.make_partial(rel, percent, remove_all_directed)
     return partial_rel
 
 

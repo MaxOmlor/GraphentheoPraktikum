@@ -1,5 +1,43 @@
 # GraphentheoPraktikum
 
+## Aufgaben
+
+### WP1
+#### 2. Partial function
+- [x] 
+#### 2b. Flag for removal of all Edges
+- [x]
+#### 3. Generation of trees
+- [x] 
+#### 4. Partial on random trees
+- [x] 
+#### 5. Benchmark
+- [ ]
+#### 6. Fitch Sat
+- [ ]
+#### 7. Symmetric Difference
+- [ ]
+
+### WP2
+#### 1.
+- [ ]
+#### 2.
+- [ ]
+#### 3.
+- [ ]
+#### 4.
+- [ ]
+#### 5.
+- [ ]
+#### 6.
+- [ ]
+#### 7.
+- [ ]
+#### 8.
+- [ ]
+#### 9. 
+- [ ]
+
 ## venv
 
 venv erzeugen:
