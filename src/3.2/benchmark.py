@@ -9,7 +9,7 @@ import make_partial
 
 sys.path.append('fitch-graph-prak')
 
-from lib import algorithm_two
+from lib import algorithm_two, graph_to_rel
 
 
 
