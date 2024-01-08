@@ -3,39 +3,71 @@
 ## Aufgaben
 
 ### WP1
+
 #### 2. Partial function
-- [x] 
-#### 2b. Flag for removal of all Edges
+
 - [x]
+
+#### 2b. Flag for removal of all Edges
+
+- [x]
+
 #### 3. Generation of trees
-- [x] 
+
+- [x]
+
 #### 4. Partial on random trees
-- [x] 
+
+- [x]
+
 #### 5. Benchmark
+
 - [ ]
+
 #### 6. Fitch Sat
+
 - [ ]
+
 #### 7. Symmetric Difference
+
 - [ ]
 
 ### WP2
-#### 1.
+
+#### 1
+
 - [ ]
-#### 2.
+
+#### 2
+
 - [ ]
-#### 3.
+
+#### 3
+
 - [ ]
-#### 4.
+
+#### 4
+
 - [ ]
-#### 5.
+
+#### 5
+
 - [ ]
-#### 6.
+
+#### 6
+
 - [ ]
-#### 7.
+
+#### 7
+
 - [ ]
-#### 8.
+
+#### 8
+
 - [ ]
-#### 9. 
+
+#### 9
+
 - [ ]
 
 ## venv

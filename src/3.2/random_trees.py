@@ -134,7 +134,7 @@ def generate_random_partial(percent: float, min_size: int = 3, remove_all_direct
     ###convert to rel
     rel = lib.cotree_to_rel(tree)
     ### generate partial rel
-    partial_rel = make_partial.make_partial(rel, percent, remove_all_directed)
+    partial_rel = make_partial.create_partial(rel, percent, remove_all_directed)
     return partial_rel
 
 
