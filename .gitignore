@@ -1,2 +1,4 @@
 venv/
 generated_testset/
+*.pyc
+*.csv
