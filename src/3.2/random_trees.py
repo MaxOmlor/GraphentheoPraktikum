@@ -3,6 +3,8 @@ import os
 import sys
 import random
 import typing
+import hashlib
+import argparse
 
 sys.path.append('fitch-graph-prak')
 
@@ -115,18 +117,64 @@ def generate_fitch_graph(tree: nx.DiGraph):
     fitch = lib.rel_to_fitch(rel, range(nodes))
     return fitch
 
-### if main
+def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool = True, min_size: int = 3, verbose: bool = False):
+    ### ensure directory exists
+
+    if not os.path.exists(path + "/cotrees"):
+        os.makedirs(path + "/cotrees", exist_ok=True)
+    if not os.path.exists(path + "/fitch"):
+        os.makedirs(path + "/fitch", exist_ok=True)
+    
+    ### avoid duplicate testcases, small trees have a high probability of being duplicates
+    hashes = set()
+
+    ### generate testcases
+    attempts = 0
+    for i in range(n):
+        found_non_duplicate = False
+        while not found_non_duplicate:
+            attempts += 1
+            ### generate random cotree
+            tree = generate_fitch_cotree()
+            ### check for minimum size
+            leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
+            if leaves < min_size:
+                continue
+            ### calculate hash
+            hashed = hash(tree)
+            ### check for duplicates
+            if hashed in hashes:
+                continue
+            found_non_duplicate = True
+            ### generate fitch graph
+            fitch = generate_fitch_graph(tree)
+            hashes.add(hashed)
+            ### save cotree
+            if cotrees:
+                filepath = path + "/cotrees/" + str(i) + ".graphml"
+                fullpath = os.path.abspath(filepath)
+                nx.write_graphml(tree, fullpath)
+                if verbose:
+                    print(fullpath)
+            ### save fitch graph
+            if fitch_graphs:
+                filepath = path + "/fitch/" + str(i) + ".graphml"
+                fullpath = os.path.abspath(filepath)
+                nx.write_graphml(fitch, fullpath)
+                if verbose:
+                    print(fullpath)
+
+
 if __name__ == "__main__":
-    #set seed
-    random.seed(42)
+    ### parse arguments
+    parser = argparse.ArgumentParser(description='Generate random testset.')
+    parser.add_argument('n', type=int, help='number of testcases to generate')
+    parser.add_argument('path', type=str , help='path to save testset to')
+    parser.add_argument('--fitch_graphs', default=True, help='generate fitch graphs')
+    parser.add_argument('--cotrees', default=True, help='generate cotrees')
+    parser.add_argument('-min_size', type=int, default=3, help='minimum size of generated trees')
+    parser.add_argument('-v', '--verbose',default=False, action='store_true', help='verbose output')
 
-    #create output folder
-    os.makedirs("generated_testset", exist_ok=True)
+    args = parser.parse_args()
 
-    #generate trees and graphs
-    for i in range(100):
-        tree = generate_fitch_cotree()
-        fitch = generate_fitch_graph(tree)
-        #save trees and graphs
-        nx.write_graphml(tree, f"generated_testset/cotree_{i}.graphml")
-        nx.write_graphml(fitch, f"generated_testset/fitchgraph_{i}.graphml")
+    create_testset(args.n, args.path, args.fitch_graphs, args.cotrees, args.min_size, args.verbose)
