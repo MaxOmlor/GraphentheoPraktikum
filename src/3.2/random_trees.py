@@ -5,7 +5,7 @@ import random
 import typing
 import hashlib
 import argparse
-from make_partial import create_partial
+import make_partial
 
 sys.path.append('fitch-graph-prak')
 
@@ -76,7 +76,7 @@ class TreeAutomaton:
 
 
 # Sets up transitions of a probabilistic tree automaton that generates a random fitch_cograph and return said tree
-def generate_fitch_cotree(w_2_terminals = 4., w_1_terminal = 2., w_0_terminals = 1., factor_e0 = 1., factor_e1 = 1.):
+def generate_fitch_cotree(w_2_terminals = 4., w_1_terminal = 2., w_0_terminals = 1., factor_e0 = .1, factor_e1 = 2.):
     states = ['E01D', 'E0', 'E0D']
     alphabet = ["", "e", "b", "u"]
     transitions = [
@@ -184,6 +184,8 @@ def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool =
                 nx.write_graphml(fitch, fullpath)
                 if verbose:
                     print(fullpath)
+
+    
 
 
 
