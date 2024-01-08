@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from 3_2_1 import create_partial, recreate_symmetry, remove_n_random_items, sort_tuples, random_numbers, count_in_range
+from make_partial import create_partial, recreate_symmetry, remove_n_random_items, sort_tuples, random_numbers, count_in_range
 
 class TestYourModule(unittest.TestCase):
 
