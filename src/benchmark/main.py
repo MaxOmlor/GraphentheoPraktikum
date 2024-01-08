@@ -113,6 +113,12 @@ def run_benchmark(args):
             
             result = run_single_benchmark(Alg2, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg2'})
+
+        if args.normal:
+            data = Alg2.preprocess(partial, leaves, 'normal', {'present': (0.8, 1,1), 'nonpresent': (.5,1,1)})
+            
+            result = run_single_benchmark(Alg2, data, rel, leaves)
+            results.append({**result, 'tree': tree_hash, 'alg': 'Alg2_normal'})
     
         if args.sat:
             
@@ -126,6 +132,7 @@ if __name__ == '__main__':
     ### Flags for which algorithms to run
     parser.add_argument('--alg1', action='store_true', help='Run algorithm 1')
     parser.add_argument('--alg2', action='store_true', help='Run algorithm 2')
+    parser.add_argument('--normal', action='store_true', help='Run normal distribution')
     parser.add_argument('--sat', action='store_true', help='Check satisfiability')
 
     ### Input file
