@@ -70,6 +70,10 @@
 
 - [ ]
 
+## command
+
+-h für help
+
 ## venv
 
 venv erzeugen:
