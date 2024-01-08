@@ -8,6 +8,8 @@ import networkx as nx
 from datetime import datetime
 from tqdm import tqdm
 import csv
+from pyfiglet import Figlet
+
 
 from single_scripts import Alg1, Alg2
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -146,9 +148,10 @@ if __name__ == '__main__':
     parser.add_argument('--runs', type=int, default=1000, help='Number of runs')
 
     args = parser.parse_args()
-    print(f'{args=}')
 
+
+    f = Figlet(font='slant')
+    print(f.renderText('Benchmark'))
     results = run_benchmark(args)
-    print(f'{results=}')
     dict_list_to_csv(results, args.output)
     
