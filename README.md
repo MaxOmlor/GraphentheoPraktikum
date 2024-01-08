@@ -94,6 +94,11 @@ requirements.txt installieren
 pip install -r requirements.txt
 ```
 
+requirements.txt updaten
+```bash
+pip freeze > requirements.txt
+```
+
 venv zu ipkernal hinzufügen
 
 ```bash
