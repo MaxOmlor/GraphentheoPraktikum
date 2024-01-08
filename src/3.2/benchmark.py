@@ -9,7 +9,7 @@ import make_partial
 
 sys.path.append('fitch-graph-prak')
 
-from lib import graph_to_rel
+from lib import algorithm_two
 
 
 
@@ -46,4 +46,4 @@ if __name__ == "__main__":
     partial = make_partial.make_partial(graph_to_rel(tree),0.2)
     weights = assign_all_weights(partial,10,1.)
 
-    test = lib.algorithm_two(weights['d'],weights[1],weights[0],num_leaves)
+    test = algorithm_two(weights['d'],weights[1],weights[0],num_leaves)
