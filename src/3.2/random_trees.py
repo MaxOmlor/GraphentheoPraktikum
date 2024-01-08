@@ -5,6 +5,7 @@ import random
 import typing
 import hashlib
 import argparse
+import make_partial
 
 sys.path.append('fitch-graph-prak')
 
@@ -117,6 +118,21 @@ def generate_fitch_graph(tree: nx.DiGraph):
     fitch = lib.rel_to_fitch(rel, range(nodes))
     return fitch
 
+def generate_random_partial(percent: float, min_size: int = 3, remove_all_directed: bool = False):
+    ### generate random cotree until it has at least min_size leaves
+    found = False
+    while not found:
+        tree = generate_fitch_cotree()
+        leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
+        if leaves >= min_size:
+            found = True
+    ###convert to rel
+    rel = lib.cotree_to_rel(tree)
+    ### generate partial rel
+    partial_rel = create_partial(rel, percent, remove_all_directed)
+    return partial_rel
+
+
 def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool = True, min_size: int = 3, verbose: bool = False):
     ### ensure directory exists
 
@@ -163,6 +179,7 @@ def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool =
                 nx.write_graphml(fitch, fullpath)
                 if verbose:
                     print(fullpath)
+
 
 
 if __name__ == "__main__":

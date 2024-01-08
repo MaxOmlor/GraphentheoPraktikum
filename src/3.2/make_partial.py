@@ -8,7 +8,7 @@ sys.path.append('fitch-graph-prak')
 
 from lib import graph_to_rel
 
-def create_partial(rel: dict[typing.Any, list[tuple[int, int]]], percent: float, remove_all_directed: bool = False):
+def make_partial(rel: dict[typing.Any, list[tuple[int, int]]], percent: float, remove_all_directed: bool = False):
     # get subset counts
     rel1_count = len(rel[1])
     rel0_count = len(rel[0])
@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
     rel = graph_to_rel(nx_graph)
 
-    partial_rel = create_partial(rel, .2)
+    partial_rel = make_partial(rel, .2)
 
     relative_size = get_rel_size(partial_rel)/get_rel_size(rel)
     print(f'{relative_size=}')
