@@ -22,15 +22,15 @@
 
 #### 5. Benchmark
 
-- [ ]
+- [x]
 
 #### 6. Fitch Sat
 
-- [ ]
+- [x]
 
 #### 7. Symmetric Difference
 
-- [ ]
+- [x]
 
 ### WP2
 
