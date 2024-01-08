@@ -5,7 +5,7 @@ import random
 import typing
 import hashlib
 import argparse
-import make_partial
+from make_partial import create_partial
 
 sys.path.append('fitch-graph-prak')
 
