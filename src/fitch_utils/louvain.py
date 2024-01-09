@@ -1,10 +1,19 @@
 import networkx
 import numpy as np
 import copy
+import math
+
+
+def is_iterable(obj):
+    try:
+        iter(obj)
+        return True
+    except TypeError:
+        return False
 
 
 def flatten(l: list):
-    if isinstance(l, list):
+    if is_iterable(l):
         flat_list = []
         for item in l:
             list_item = flatten(item)
@@ -16,7 +25,7 @@ def flatten(l: list):
 
 def collapse_nodes(graph: networkx.Graph, u,v):
     new_node = (u, v)
-    new_node = flatten(new_node)
+    new_node = tuple(flatten(new_node))
 
     result_graph = copy.deepcopy(graph)
     result_graph.add_node(new_node)
@@ -43,6 +52,7 @@ def move_node_to_partition(partitions, node, partition_index):
         if node in p:
             p.remove(node)
     result_partitions[partition_index].append(node)
+    result_partitions = [p for p in result_partitions if p]
     return result_partitions
 
 def quality_function(graph: networkx.Graph, partitions):
@@ -59,16 +69,27 @@ def quality_function(graph: networkx.Graph, partitions):
         weight += p_weight
     return -weight
 
+def quality_function_2part(graph: networkx.Graph, partitions):
+    weight = quality_function(graph, partitions)
+
+    distance_2parts = abs(len(partitions)-2)
+
+    max_weight = -min(graph.edges[e]['weight'] for e in graph.edges)*graph.number_of_edges()
+    print(f'{weight=}, {max_weight=}, {distance_2parts=} -> {weight - max_weight*distance_2parts}')
+    print(f'{partitions=}')
+    return weight - max_weight*distance_2parts
+
 def move_nodes(graph: networkx.Graph, partitions):
+    q_func = quality_function_2part
     result_partitions = copy.deepcopy(partitions)
 
     while True:
-        h_old = quality_function(graph, result_partitions)
+        h_old = q_func(graph, result_partitions)
         for n in graph.nodes:
             modified_partitions = [move_node_to_partition(result_partitions, n, i) for i,c in enumerate(result_partitions)]
-            modified_partition_qualities = [quality_function(graph,p) for p in modified_partitions]
+            modified_partition_qualities = [q_func(graph,p) for p in modified_partitions]
             
-            h_p = quality_function(graph,result_partitions)
+            h_p = q_func(graph,result_partitions)
             modified_partition_deltas = [q-h_p for q in modified_partition_qualities]
             
             maxid = np.argmax(modified_partition_deltas)
@@ -76,7 +97,7 @@ def move_nodes(graph: networkx.Graph, partitions):
             if modified_partition_deltas[maxid] > 0:
                 result_partitions = modified_partitions[maxid]
 
-        h_new = quality_function(graph, result_partitions)
+        h_new = q_func(graph, result_partitions)
         if not h_new > h_old:
             break
 
@@ -126,8 +147,7 @@ def partition_louvain(graph: networkx.Graph):
             break
     # return flatten(partitions)
     #remove empty partitions
-    partitions = [p for p in partitions if p]
-    return partitions
+    return [flatten(p) for p in partitions]
 
 if __name__ == '__main__':
     num_nodes = 4
@@ -139,7 +159,7 @@ if __name__ == '__main__':
     graph.add_edge(0,3, weight=1)
     graph.add_edge(1,2, weight=1)
     graph.add_edge(1,3, weight=1)
-    graph.add_edge(2,3, weight=0)
+    graph.add_edge(2,3, weight=1)
 
 
     partitions = partition_louvain_normalized(graph)
