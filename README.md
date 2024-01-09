@@ -42,31 +42,31 @@
 
 - [x]
 
-#### 3. Greedy Heuristic Paritioning
+#### 3. Greedy Heuristic Partitioning
 
 - [ ]
 
-#### 4
+#### 4. Random Partitioning
 
 - [ ]
 
-#### 5
+#### 5. Louvain Algorithm
 
 - [ ]
 
-#### 6
+#### 6. Leiden Algorithm
 
 - [ ]
 
-#### 7
+#### 7. Benchmark Algorithms on Weights
 
 - [ ]
 
-#### 8
+#### 8. Symmetric Difference
 
 - [ ]
 
-#### 9
+#### 9. Performance Comparison
 
 - [ ]
 
