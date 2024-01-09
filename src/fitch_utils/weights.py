@@ -1,14 +1,11 @@
 import sys
 import typing
-import os
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from fitch_utils import weights
+import numpy as np
+from make_partial import recreate_symmetry
 
 sys.path.append('fitch-graph-prak')
 import lib
 
-"""
 def assign_rel_weights(e_completed, e_complement, rel, weight):
     rel_weights = []
     for e in e_completed:
@@ -33,15 +30,15 @@ def assign_rel_weights_dist(num_nodes: int, rel: list[tuple[int, int]], dist_0, 
     rel_weights_dict = dict(rel_weights)
     return rel_weights_dict
 
-def assign_all_weights(rel: dict[typing.Any, list[tuple[int, int]]], num_nodes: int, w_type: str, dist_data: dict):
+def assign_all_weights(rel: dict[typing.Any, list[tuple[int, int]]], num_nodes: int, w_type: str, dist_data: dict = None):
     rel_0 = rel[0]
     rel_1 = rel[1]
     rel_d = rel['d']
 
-    if 'uniform':
+    if w_type == 'uniform':
         weight = 1
 
-        e_completed =rel_0 + rel_1 + make_partial.recreate_symmetry(rel_d)
+        e_completed =rel_0 + rel_1 + recreate_symmetry(rel_d)
         e_complement = [(i,j) for i in range(num_nodes) for j in range(num_nodes) if (i,j) not in e_completed and i != j]
         
         return {
@@ -50,7 +47,13 @@ def assign_all_weights(rel: dict[typing.Any, list[tuple[int, int]]], num_nodes: 
             'd': assign_rel_weights(e_completed,e_complement,rel_d,weight),
         }
     
-    if 'normal':
+    if w_type == 'normal':
+        print('normal')
+        if not dist_data:
+            dist_data = {
+                'present': (0.8, .1,1),
+                'nonpresent': (0.5, .1 ,1)
+            }
         dist_0 = np.random.normal
         param_0 = dist_data['present']
         dist_1 = np.random.normal
@@ -62,12 +65,4 @@ def assign_all_weights(rel: dict[typing.Any, list[tuple[int, int]]], num_nodes: 
             'd': assign_rel_weights_dist(num_nodes, rel_d, dist_0, param_0, dist_1, param_1),
         }
 
-    raise ValueError(f'w_type must be uniform or normal not {w_type}')"""
-
-def preprocess(rel: dict[typing.Any, list[tuple[int, int]]], num_nodes: int, w_type='uniform', dist_data=None):
-    return {**weights.assign_all_weights(rel,num_nodes,w_type,dist_data), 'nodes': num_nodes}
-
-
-def run(data):
-    test = lib.algorithm_two(list(range(data['nodes'])),data['d'],data[1],data[0])
-    return test
+    raise ValueError(f'w_type must be uniform or normal not {w_type}')
