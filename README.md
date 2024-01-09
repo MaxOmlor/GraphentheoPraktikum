@@ -34,11 +34,11 @@
 
 ### WP2
 
-#### 1
+#### 1. Generate Weights with Distributions
 
 - [ ]
 
-#### 2
+#### 2. Partition Framework
 
 - [ ]
 
