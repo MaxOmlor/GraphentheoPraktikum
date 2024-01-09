@@ -5,6 +5,7 @@ sys.path.append('fitch-graph-prak')
 
 import lib
 from weights import assign_all_weights
+import random
 
 
 # scoring functions get a list of lists (node partitions) and weighted edges
@@ -67,11 +68,54 @@ def partition_greedy(graph: networkx.Graph, score_function):
 
     return left, right
 
+def partition_random(graph: networkx.Graph):
+    partitions = ([], [])
+    # num_nodes = graph.number_of_nodes()
+    for n in graph.nodes:
+        ran = random.randint(0, 1)
+        partitions[ran].append(n)
+
+    if not any(partitions[0]):
+        index = random.randint(0, len(partitions[1])-1)
+        partitions[0].append(partitions[1].pop(index))
+    if not any(partitions[1]):
+        index = random.randint(0, len(partitions[0])-1)
+        partitions[1].append(partitions[0].pop(index))
+    return partitions
+
+def partition_right_solo(graph: networkx.Graph):
+    left = [n for n in graph.nodes]
+    # initialize right with 1 node
+    right = [left.pop()]
+    return left, right
+
+def partition_left_solo(graph: networkx.Graph):
+    left = [n for n in graph.nodes]
+    # initialize right with 1 node
+    right = [left.pop(0)]
+    return left, right
+
+
+
+
 
 if __name__ == '__main__':
-    num_nodes = 8
+    num_nodes = 10
     rel = {0:[], 1:[], 'd':[]}
     weights = assign_all_weights(rel, num_nodes, 'normal')
-    print(f'{weights=}')
-    result = lib.partition_heuristic_scaffold(weights['d'], weights[1], weights[0], list(range(num_nodes)),partition_greedy_sum,score_sum)
-    print(f'{result=}')
+    
+    # result_sum = lib.partition_heuristic_scaffold(weights['d'], weights[1], weights[0], list(range(num_nodes)),partition_greedy_sum,score_sum)
+    # print(f'{result_sum=}')
+    # result_average = lib.partition_heuristic_scaffold(weights['d'], weights[1], weights[0], list(range(num_nodes)),partition_random,score_average)
+    # difference = lib.sym_diff(result_sum, result_average, num_nodes)
+    # print(f'{result_sum=}')
+    # print(f'{result_average=}')
+    # print(f'{difference=}')
+
+    result_right = lib.partition_heuristic_scaffold(weights['d'], weights[1], weights[0], list(range(num_nodes)),partition_right_solo,score_sum)
+    print(f'{result_right=}')
+    result_left = lib.partition_heuristic_scaffold(weights['d'], weights[1], weights[0], list(range(num_nodes)),partition_left_solo,score_sum)
+    print(f'{result_right=}')
+    print(f'{result_left=}')
+    difference = lib.sym_diff(result_right, result_left, num_nodes)
+    print(f'{difference=}')
