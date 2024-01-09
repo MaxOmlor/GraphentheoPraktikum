@@ -3,9 +3,11 @@ import os
 import sys
 import random
 import argparse
-import make_partial
+# import make_partial
+import fitch_utils.make_partial as make_partial
 
-sys.path.append('fitch-graph-prak')
+
+# sys.path.append('fitch-graph-prak')
 import lib
 
 

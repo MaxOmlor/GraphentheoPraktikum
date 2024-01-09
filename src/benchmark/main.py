@@ -12,7 +12,7 @@ from pyfiglet import Figlet
 
 
 from single_scripts import Alg1, Alg2
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from fitch_utils.random_trees import generate_random_cotree
 from fitch_utils.make_partial import make_partial
 

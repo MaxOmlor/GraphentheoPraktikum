@@ -1,7 +1,8 @@
 import sys
 import typing
 import numpy as np
-from make_partial import recreate_symmetry
+# from make_partial import recreate_symmetry
+from fitch_utils.make_partial import recreate_symmetry
 
 sys.path.append('fitch-graph-prak')
 import lib
