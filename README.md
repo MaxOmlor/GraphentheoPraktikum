@@ -36,13 +36,13 @@
 
 #### 1. Generate Weights with Distributions
 
-- [ ]
+- [x]
 
 #### 2. Partition Framework
 
-- [ ]
+- [x]
 
-#### 3
+#### 3. Greedy Heuristic Paritioning
 
 - [ ]
 
