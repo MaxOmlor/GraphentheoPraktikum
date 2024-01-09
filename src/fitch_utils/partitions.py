@@ -12,7 +12,7 @@ def score_average(left: list[int], right: list[int], weights: dict[tuple[int, in
     weight = 0
     for i in left:
         for j in right:
-            if i != j and ((i, j) in weights or (j, i) in weights):
+            if i != j and ((i, j) in weights):
                 weight += weights[(i, j)]
                 count += 1
     if count == 0:
@@ -25,64 +25,24 @@ def score_sum(left: list[int], right: list[int], weights: dict[tuple[int, int], 
     weight = 0
     for i in left:
         for j in right:
-            if i != j and ((i, j) in weights or (j, i) in weights):
+            if i != j and ((i, j) in weights):
                 weight += weights[(i, j)]
     return weight
 
+def partition_greedy_average(graph: networkx.Graph):
+    return partition_greedy(graph, score_average)
+
+def partition_greedy_sum(graph: networkx.Graph):
+    return partition_greedy(graph, score_sum)
 
 # weights are saved in the graph as edge attributes
-def partition_greedy(graph: networkx.Graph):
-    # initialize partitions
-    left = []
-    right = []
+def partition_greedy(graph: networkx.Graph, score_function):
+    # initialize partitions, fill left with all nodes
+    left = [n for n in graph.nodes]
+    # initialize right with 1 node
+    right = [left.pop()]
     # initialize scores
-    left_score = 0
-    right_score = 0
+    score = score_function(left, right, graph.edges)
 
-    # add nodes to partitions until no improvement is possible
-    while True:
-        # initialize best score and best node
-        best_score = 0
-        best_node = -1
-        # iterate over all nodes
-        for node in graph.nodes:
-            # if the node is not yet in a partition
-            if node not in left and node not in right:
-                # calculate the score of the node in the left partition
-                left.append(node)
-                score = score_average(left, right, graph.edges)
-                left.remove(node)
-                # if the score is better than the current best score, save it
-                if score > best_score:
-                    best_score = score
-                    best_node = node
-        # if no improvement is possible, stop
-        if best_score <= left_score:
-            break
-        # otherwise, add the best node to the left partition
-        left.append(best_node)
-        left_score = best_score
-
-        # initialize best score and best node
-        best_score = 0
-        best_node = -1
-        # iterate over all nodes
-        for node in graph.nodes:
-            # if the node is not yet in a partition
-            if node not in left and node not in right:
-                # calculate the score of the node in the right partition
-                right.append(node)
-                score = score_average(left, right, graph.edges)
-                right.remove(node)
-                # if the score is better than the current best score, save it
-                if score > best_score:
-                    best_score = score
-                    best_node = node
-        # if no improvement is possible, stop
-        if best_score <= right_score:
-            break
-        # otherwise, add the best node to the right partition
-        right.append(best_node)
-        right_score = best_score
 
     return left, right
