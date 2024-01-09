@@ -34,39 +34,39 @@
 
 ### WP2
 
-#### 1
+#### 1. Generate Weights with Distributions
+
+- [x]
+
+#### 2. Partition Framework
+
+- [x]
+
+#### 3. Greedy Heuristic Partitioning
 
 - [ ]
 
-#### 2
+#### 4. Random Partitioning
 
 - [ ]
 
-#### 3
+#### 5. Louvain Algorithm
 
 - [ ]
 
-#### 4
+#### 6. Leiden Algorithm
 
 - [ ]
 
-#### 5
+#### 7. Benchmark Algorithms on Weights
 
 - [ ]
 
-#### 6
+#### 8. Symmetric Difference
 
 - [ ]
 
-#### 7
-
-- [ ]
-
-#### 8
-
-- [ ]
-
-#### 9
+#### 9. Performance Comparison
 
 - [ ]
 

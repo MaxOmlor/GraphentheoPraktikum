@@ -127,8 +127,9 @@ def run_benchmark(args):
     
         if args.sat:
             
-            result = lib.check_fitch_graph(tree)
+            result = lib.check_fitch_graph(lib.rel_to_fitch(partial))
             results.append({'sat': result, 'tree': tree_hash, 'alg': 'SAT'})
+
         pbar.update(1)
     pbar.close()
     return results
