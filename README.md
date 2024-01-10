@@ -44,15 +44,15 @@
 
 #### 3. Greedy Heuristic Partitioning
 
-- [ ]
+- [x]
 
 #### 4. Random Partitioning
 
-- [ ]
+- [x]
 
 #### 5. Louvain Algorithm
 
-- [ ]
+- [x]
 
 #### 6. Leiden Algorithm
 
