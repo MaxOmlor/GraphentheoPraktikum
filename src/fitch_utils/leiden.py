@@ -90,7 +90,7 @@ def quality_function_2part(graph: networkx.Graph, partitions: list[list]) -> flo
     distance_2parts = abs(len(partitions)-2)
 
     max_weight = -min(graph.edges[e]['weight'] for e in graph.edges)*graph.number_of_edges()
-    print(f'{weight=}, {max_weight=}, {distance_2parts=} -> {weight - max_weight*distance_2parts}')
+    print(f'{graph.number_of_edges()=}, {weight=}, {max_weight=}, {distance_2parts=} -> {weight - max_weight*distance_2parts}')
     print(f'{partitions=}')
     return weight - max_weight*distance_2parts
 
@@ -157,6 +157,7 @@ def partition_leiden_normalized(graph: networkx.Graph):
     
     for e in mean_graph.edges:
         mean_graph.edges[e]['weight'] -= mean_weight
+        print(f'{mean_graph.edges[e]=}')
         
     return partition_leiden(mean_graph)
 
@@ -172,8 +173,9 @@ def get_edges_weights(set1, set2):
     return [graph.edges[(v,w)]['weight'] for w in set2 for v in set1]
 
 def is_well_connected(set1, set2) -> bool:
-    connectivness_threshhold = .8
-    return sum(get_edges_weights(set1, set2)) >= connectivness_threshhold*len_flatten(set1) * (len_flatten(set2) - len_flatten(set1))
+    connectivness_threshhold = 0
+    # return sum(get_edges_weights(set1, set2)) >= connectivness_threshhold*len_flatten(set1) * (len_flatten(set2) - len_flatten(set1))
+    return sum(get_edges_weights(set1, set2)) >= connectivness_threshhold
 
 def get_prop(graph: networkx.Graph, v, subset, h_p, q_func, degree_of_randomness):
     part_delta = modified_partition_delta(graph, v, subset, h_p, q_func)
