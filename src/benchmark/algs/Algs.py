@@ -36,57 +36,57 @@ def run_alg2_normal(data):
     test = lib.algorithm_two(list(range(data['nodes'])),weights['d'],weights[1],weights[0])
     return test
 
-# def run_louvain(data):
-#     weights = data['weights']
-#     partition_func = louvain.partition_louvain_normalized
-#     scoring_func = partitions.score_sum
+def run_louvain(data):
+    weights = data['weights']
+    partition_func = louvain.partition_louvain_normalized
+    scoring_func = partitions.score_sum
     
-#     test = lib.partition_heuristic_scaffold(
-#         weights['d'],weights[1],weights[0],data['nodes'],
-#         partition_func, scoring_func,
-#         data['rel'])
-#     return test
+    test = lib.partition_heuristic_scaffold(
+        weights['d'],weights[1],weights[0],data['nodes'],
+        partition_func, scoring_func,
+        data['rel'])
+    return test
 
-# def run_greedy_sum(data):
-#     weights = data['weights']
-#     partition_func = partitions.partition_greedy_sum
-#     scoring_func = partitions.score_sum
+def run_greedy_sum(data):
+    weights = data['weights']
+    partition_func = partitions.partition_greedy_sum
+    scoring_func = partitions.score_sum
     
-#     test = lib.partition_heuristic_scaffold(
-#         weights['d'],weights[1],weights[0],data['nodes'],
-#         partition_func, scoring_func,
-#         data['rel'])
-#     return test
+    test = lib.partition_heuristic_scaffold(
+        weights['d'],weights[1],weights[0],data['nodes'],
+        partition_func, scoring_func,
+        data['rel'])
+    return test
 
-# def run_greedy_average(data):
-#     weights = data['weights']
-#     partition_func = partitions.partition_greedy_sum
-#     scoring_func = partitions.score_average
+def run_greedy_average(data):
+    weights = data['weights']
+    partition_func = partitions.partition_greedy_sum
+    scoring_func = partitions.score_average
     
-#     test = lib.partition_heuristic_scaffold(
-#         weights['d'],weights[1],weights[0],data['nodes'],
-#         partition_func, scoring_func,
-#         data['rel'])
-#     return test
+    test = lib.partition_heuristic_scaffold(
+        weights['d'],weights[1],weights[0],data['nodes'],
+        partition_func, scoring_func,
+        data['rel'])
+    return test
 
-# def run_random_sum(data):
-#     weights = data['weights']
-#     partition_func = partitions.partition_random
-#     scoring_func = partitions.score_sum
+def run_random_sum(data):
+    weights = data['weights']
+    partition_func = partitions.partition_random
+    scoring_func = partitions.score_sum
     
-#     test = lib.partition_heuristic_scaffold(
-#         weights['d'],weights[1],weights[0],data['nodes'],
-#         partition_func, scoring_func,
-#         data['rel'])
-#     return test
+    test = lib.partition_heuristic_scaffold(
+        weights['d'],weights[1],weights[0],data['nodes'],
+        partition_func, scoring_func,
+        data['rel'])
+    return test
 
-# def run_random_average(data):
-#     weights = data['weights']
-#     partition_func = partitions.partition_random
-#     scoring_func = partitions.score_average
+def run_random_average(data):
+    weights = data['weights']
+    partition_func = partitions.partition_random
+    scoring_func = partitions.score_average
     
-#     test = lib.partition_heuristic_scaffold(
-#         weights['d'],weights[1],weights[0],data['nodes'],
-#         partition_func, scoring_func,
-#         data['rel'])
-#     return test
+    test = lib.partition_heuristic_scaffold(
+        weights['d'],weights[1],weights[0],data['nodes'],
+        partition_func, scoring_func,
+        data['rel'])
+    return test

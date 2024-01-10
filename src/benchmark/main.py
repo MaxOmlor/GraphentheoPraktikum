@@ -9,7 +9,7 @@ from datetime import datetime
 from tqdm import tqdm
 import csv
 from pyfiglet import Figlet
-from benchmark.algs import Algs
+from algs import Algs
 
 import preprocess
 from algs import Algs
@@ -45,7 +45,8 @@ def create_tree_data(num_trees: int, min_size: int=0, max_size: int=math.inf):
 def get_tree_data_from_file(path: str):
     trees = []
     with open(path, 'r') as f:
-        for line in f:
+        #for loop for file with tqdm
+        for line in tqdm(f.readlines(), desc='read trees    '):
             line = line.strip()
             if line == '':
                 continue
@@ -82,18 +83,27 @@ def dict_list_to_csv(dict_list: list[dict], file_path: str):
 def run_benchmark(args):
     # setup
     ### create trees
-    trees = []
+    cotrees = []
+    fitch_graphs = []
     if args.trees:
-        trees = create_tree_data(args.runs, min_size=args.min, max_size=args.max)
+        cotrees = create_tree_data(args.runs, min_size=args.min, max_size=args.max)
     if args.input:
-        trees = trees + get_tree_data_from_file(args.input)
-    if len(trees) == 0:
+        fitch_graphs = get_tree_data_from_file(args.input)
+    if len(cotrees) + len(fitch_graphs)== 0:
         print('No trees found')
         return
     
-    ### get relations
-    relations = [lib.cotree_to_rel(tree) for tree in trees]
-
+    ### get relations (with a tqdm loadbar)
+    bar = tqdm(total=len(cotrees) + len(fitch_graphs), desc='load relations')
+    relations = []
+    for tree in cotrees:
+        relations.append(lib.cotree_to_rel(tree))
+        bar.update(1)
+    for fitch in fitch_graphs:
+        relations.append(lib.graph_to_rel(fitch))
+        bar.update(1)
+    bar.close()
+    
     ### create partials
     partials = [make_partial(rel, args.partial) for rel in relations]
 
@@ -101,8 +111,8 @@ def run_benchmark(args):
     ### run alg1
     results = []
     # for i in range(len(trees)):
-    pbar = tqdm(total=len(trees), desc='run benchmarks')
-    for tree, rel, partial in zip(trees, relations, partials):
+    pbar = tqdm(total=len(cotrees), desc='run benchmarks')
+    for tree, rel, partial in zip(cotrees, relations, partials):
         leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
         tree_hash = hash(tree)
         data = preprocess.preprocess(partial, leaves, (0,1,2),{'present': (0.8, 1,1), 'nonpresent': (.5,1,1)})
@@ -119,9 +129,29 @@ def run_benchmark(args):
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg2_normal'})
     
         if args.sat:
-            
             result = lib.check_fitch_graph(lib.rel_to_fitch(partial))
             results.append({'sat': result, 'tree': tree_hash, 'alg': 'SAT'})
+
+        if args.louvain:
+            result = run_single_benchmark(Algs.run_louvain, data, rel, leaves)
+            results.append({**result, 'tree': tree_hash, 'alg': 'Louvain'})
+
+        if args.greedy_sum:
+            result = run_single_benchmark(Algs.run_greedy_sum, data, rel, leaves)
+            results.append({**result, 'tree': tree_hash, 'alg': 'Greedy Sum'})
+
+        if args.greedy_average:
+            result = run_single_benchmark(Algs.run_greedy_average, data, rel, leaves)
+            results.append({**result, 'tree': tree_hash, 'alg': 'Greedy Average'})
+
+        if args.random_sum:
+            result = run_single_benchmark(Algs.run_random_sum, data, rel, leaves)
+            results.append({**result, 'tree': tree_hash, 'alg': 'Random Sum'})
+
+        if args.random_average:
+            result = run_single_benchmark(Algs.run_random_average, data, rel, leaves)
+            results.append({**result, 'tree': tree_hash, 'alg': 'Random Average'})
+        
 
         pbar.update(1)
     pbar.close()
@@ -135,6 +165,11 @@ if __name__ == '__main__':
     parser.add_argument('--alg2', action='store_true', help='Run algorithm 2')
     parser.add_argument('--normal', action='store_true', help='Run normal distribution')
     parser.add_argument('--sat', action='store_true', help='Check satisfiability')
+    parser.add_argument('--louvain', action='store_true', help='Run louvain')
+    parser.add_argument('--greedy_sum', action='store_true', help='Run greedy sum')
+    parser.add_argument('--greedy_average', action='store_true', help='Run greedy average')
+    parser.add_argument('--random_sum', action='store_true', help='Run random sum')
+    parser.add_argument('--random_average', action='store_true', help='Run random average')
 
     ### Input file
     parser.add_argument('--input', type=str, help='Input file')
@@ -157,9 +192,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-
     f = Figlet(font='slant')
     print(f.renderText('Benchmark...'))
+    if not any([args.alg1, args.alg2, args.normal, args.sat, args.louvain, args.greedy_sum, args.greedy_average, args.random_sum, args.random_average]):
+        print('No algorithms selected')
+        sys.exit()
+    if not any([args.input, args.trees]):
+        print('No input file or tree creation selected')
+        sys.exit()
     results = run_benchmark(args)
     dict_list_to_csv(results, args.output)
     
