@@ -9,9 +9,10 @@ from datetime import datetime
 from tqdm import tqdm
 import csv
 from pyfiglet import Figlet
+from benchmark.algs import Algs
 
-
-from single_scripts import Alg1, Alg2
+import preprocess
+from algs import Algs
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from fitch_utils.random_trees import generate_random_cotree
 from fitch_utils.make_partial import make_partial
@@ -54,7 +55,7 @@ def get_tree_data_from_file(path: str):
 
 def run_single_benchmark(run_func, data, rel, leaves):
     start_time = datetime.now()
-    output = run_func.run(data)
+    output = run_func(data)
     delta_time = datetime.now() - start_time
 
     symmetric_difference = lib.sym_diff(output, rel, leaves)
@@ -104,25 +105,17 @@ def run_benchmark(args):
     for tree, rel, partial in zip(trees, relations, partials):
         leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
         tree_hash = hash(tree)
-
+        data = preprocess.preprocess(partial, leaves, (0,1,2),{'present': (0.8, 1,1), 'nonpresent': (.5,1,1)})
         if args.alg1:
-            ## count tree leaves
-
-            data = Alg1.preprocess(partial, leaves, (0,1,2))
-            
-            result = run_single_benchmark(Alg1, data, rel, leaves)
+            result = run_single_benchmark(Algs.run_alg1, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg1'})
 
         if args.alg2:
-            data = Alg2.preprocess(partial, leaves)
-            
-            result = run_single_benchmark(Alg2, data, rel, leaves)
+            result = run_single_benchmark(Algs.run_alg2, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg2'})
 
         if args.normal:
-            data = Alg2.preprocess(partial, leaves, 'normal', {'present': (0.8, 1,1), 'nonpresent': (.5,1,1)})
-            
-            result = run_single_benchmark(Alg2, data, rel, leaves)
+            result = run_single_benchmark(Algs.run, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg2_normal'})
     
         if args.sat:
