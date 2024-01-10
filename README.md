@@ -4,7 +4,7 @@
 
 ### WP1
 
-#### 2. Partial function
+#### 2. Partial function 
 
 - [x]
 
@@ -44,15 +44,15 @@
 
 #### 3. Greedy Heuristic Partitioning
 
-- [ ]
+- [x]
 
 #### 4. Random Partitioning
 
-- [ ]
+- [x]
 
 #### 5. Louvain Algorithm
 
-- [ ]
+- [x]
 
 #### 6. Leiden Algorithm
 
