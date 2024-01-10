@@ -148,17 +148,24 @@ def refine_partition(graph: networkx.Graph, partitions: list[list]):
         refined_partitions = merge_nodes_subset(graph, refined_partitions, p)
     return refined_partitions
 
+def get_edges(set1, set2):
+    if isinstance(set1, int): # wenn node^
+        set1 = [set1]
+    return [graph.edges[(v,w)]['weight'] for w in set2 for v in set1]
+
 def merge_nodes_subset(graph: networkx.Graph, partitions: list[list], subset):
     connectivness_threshhold = .8
     result_partitions = copy.deepcopy(partitions)
 
-    get_neighb_in_subset = lambda v, s: [graph.edges[(v,w)]['weight'] for w in s]
     R = [v for v in subset
-         if sum(get_neighb_in_subset(v, subset))
+         if sum(get_edges(v, subset))
             >= connectivness_threshhold*len_flatten(v) * (len_flatten(subset) - len_flatten(v))]
 
     for v in R:
         if [v] in partitions:
+            T = [c for c in partitions
+                 if set(c).issubset(set(subset))
+                 and sum(get_edges(c, subset))]
     
     return result_partitions
 

@@ -1,5 +1,5 @@
 import unittest
-from src.fitch_utils import flatten, len_flatten
+from src.fitch_utils.leiden import flatten, len_flatten
 
 class TestLeiden(unittest.TestCase):
     def test_flatten(self):
