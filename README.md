@@ -4,7 +4,7 @@
 
 ### WP1
 
-#### 2. Partial function
+#### 2. Partial function 
 
 - [x]
 
