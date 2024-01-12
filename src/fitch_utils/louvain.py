@@ -75,8 +75,6 @@ def quality_function_2part(graph: networkx.Graph, partitions):
     distance_2parts = abs(len(partitions)-2)
 
     max_weight = -min(graph.edges[e]['weight'] for e in graph.edges)*graph.number_of_edges()
-    print(f'{weight=}, {max_weight=}, {distance_2parts=} -> {weight - max_weight*distance_2parts}')
-    print(f'{partitions=}')
     return weight - max_weight*distance_2parts
 
 def move_nodes(graph: networkx.Graph, partitions):
@@ -164,4 +162,4 @@ if __name__ == '__main__':
 
     partitions = partition_louvain_normalized(graph)
 
-    print(partitions)
+      (partitions)

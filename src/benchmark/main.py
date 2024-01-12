@@ -115,8 +115,7 @@ def run_benchmark(args):
     for tree, rel, partial in zip(cotrees, relations, partials):
         leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
         tree_hash = hash(tree)
-        data = preprocess.preprocess(partial, leaves, (0,1,2),{'present': (0.8, 1,1), 'nonpresent': (.5,1,1)})
-        print(f'{data=}')
+        data = preprocess.preprocess(partial, leaves, (0,1,2),{'present': (5, .1,1), 'nonpresent': (.5,.1,1)})
         if args.alg1:
             result = run_single_benchmark(Algs.run_alg1, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg1'})

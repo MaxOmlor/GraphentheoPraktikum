@@ -49,7 +49,6 @@ def assign_all_weights(rel: dict[typing.Any, list[tuple[int, int]]], num_nodes: 
         }
     
     if w_type == 'normal':
-        print('normal')
         if not dist_data:
             dist_data = {
                 'present': (0.8, .1,1),

@@ -38,7 +38,7 @@ def run_alg2_normal(data):
     return test
 
 def run_louvain(data):
-    weights = data['weights']
+    weights = data['weights']['normal']
     partition_func = louvain.partition_louvain_normalized
     scoring_func = partitions.score_sum
     
