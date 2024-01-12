@@ -94,7 +94,7 @@ def quality_function_2part(graph: networkx.Graph, partitions: list[list]) -> flo
     print(f'{partitions=}')
     return weight - max_weight*distance_2parts
 
-def modified_partition_delta(graph: networkx.Graph, v, subset, h_p, q_func):
+def modified_partition_delta(graph: networkx.Graph, v, subset, h_p, q_func,partitions):
     p = move_node_to_partition(partitions, v, subset)
     q = q_func(graph,p)
     return q-h_p
@@ -167,18 +167,20 @@ def refine_partition(graph: networkx.Graph, partitions: list[list], q_func):
         refined_partitions = merge_nodes_subset(graph, refined_partitions, p, q_func)
     return refined_partitions
 
-def get_edges_weights(set1, set2):
+def get_edges_weights(graph: networkx.Graph,set1, set2):
     if isinstance(set1, int): # wenn node
         set1 = [set1]
-    return [graph.edges[(v,w)]['weight'] for w in set2 for v in set1]
+    print(f'{set1=}, {set2=}')
+    print(f'{graph.nodes=}')
+    return [graph.edges[(v,w)]['weight'] for w in set2 for v in set1 if w != v]
 
-def is_well_connected(set1, set2) -> bool:
+def is_well_connected(graph: networkx.Graph,set1, set2) -> bool:
     connectivness_threshhold = 0
     # return sum(get_edges_weights(set1, set2)) >= connectivness_threshhold*len_flatten(set1) * (len_flatten(set2) - len_flatten(set1))
-    return sum(get_edges_weights(set1, set2)) >= connectivness_threshhold
+    return sum(get_edges_weights(graph,set1, set2)) >= connectivness_threshhold
 
-def get_prop(graph: networkx.Graph, v, subset, h_p, q_func, degree_of_randomness):
-    part_delta = modified_partition_delta(graph, v, subset, h_p, q_func)
+def get_prop(graph: networkx.Graph, v, subset, h_p, q_func, degree_of_randomness, partitions):
+    part_delta = modified_partition_delta(graph, v, subset, h_p, q_func,partitions)
     if part_delta >= 0:
         return math.exp((1/degree_of_randomness) * part_delta)
     else:
@@ -188,17 +190,17 @@ def get_props(graph: networkx.Graph, partitions, v, T, q_func):
     degree_of_randomness = 0.01
     h_p = q_func(graph,partitions)
 
-    props = [get_prop(graph, v, c, h_p, q_func, degree_of_randomness) for c in T]
+    props = [get_prop(graph, v, c, h_p, q_func, degree_of_randomness,partitions) for c in T]
     return props
 
 def merge_nodes_subset(graph: networkx.Graph, partitions: list[list], subset, q_func):
     result_partitions = copy.deepcopy(partitions)
 
-    R = [v for v in subset if is_well_connected(v, subset)]
+    R = [v for v in subset if is_well_connected(graph,v, subset)]
 
     for v in R:
         if [v] in result_partitions:
-            T = [c for c in result_partitions if is_well_connected(v, subset)]
+            T = [c for c in result_partitions if is_well_connected(graph,v, subset)]
             props = get_props(graph, result_partitions, v, T, q_func)
             
             partition = random.choices(T, props, k=1)[0]
