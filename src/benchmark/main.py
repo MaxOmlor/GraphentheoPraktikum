@@ -116,6 +116,7 @@ def run_benchmark(args):
         leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
         tree_hash = hash(tree)
         data = preprocess.preprocess(partial, leaves, (0,1,2),{'present': (0.8, 1,1), 'nonpresent': (.5,1,1)})
+        print(f'{data=}')
         if args.alg1:
             result = run_single_benchmark(Algs.run_alg1, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg1'})
@@ -135,6 +136,10 @@ def run_benchmark(args):
         if args.louvain:
             result = run_single_benchmark(Algs.run_louvain, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Louvain'})
+        
+        if args.leiden:
+            result = run_single_benchmark(Algs.run_leiden, data, rel, leaves)
+            results.append({**result, 'tree': tree_hash, 'alg': 'Leiden'})
 
         if args.greedy_sum:
             result = run_single_benchmark(Algs.run_greedy_sum, data, rel, leaves)
@@ -166,6 +171,7 @@ if __name__ == '__main__':
     parser.add_argument('--normal', action='store_true', help='Run normal distribution')
     parser.add_argument('--sat', action='store_true', help='Check satisfiability')
     parser.add_argument('--louvain', action='store_true', help='Run louvain')
+    parser.add_argument('--leiden', action='store_true', help='Run leiden')
     parser.add_argument('--greedy_sum', action='store_true', help='Run greedy sum')
     parser.add_argument('--greedy_average', action='store_true', help='Run greedy average')
     parser.add_argument('--random_sum', action='store_true', help='Run random sum')
@@ -194,7 +200,7 @@ if __name__ == '__main__':
 
     f = Figlet(font='slant')
     print(f.renderText('Benchmark...'))
-    if not any([args.alg1, args.alg2, args.normal, args.sat, args.louvain, args.greedy_sum, args.greedy_average, args.random_sum, args.random_average]):
+    if not any([args.alg1, args.alg2, args.normal, args.sat, args.louvain,args.leiden, args.greedy_sum, args.greedy_average, args.random_sum, args.random_average]):
         print('No algorithms selected')
         sys.exit()
     if not any([args.input, args.trees]):

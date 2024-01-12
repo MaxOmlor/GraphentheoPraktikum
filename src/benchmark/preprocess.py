@@ -11,7 +11,7 @@ def preprocess(rel: dict[typing.Any, list[tuple[int, int]]], num_nodes: int, ord
 
     return {
         'rel':rel,
-        'nodes': num_nodes,
+        'nodes': list(range(num_nodes)),
         'order': order,
         'weights': {
             dist_type: weights.assign_all_weights(rel,num_nodes,dist_type,dist_data) for dist_type in dist_types
