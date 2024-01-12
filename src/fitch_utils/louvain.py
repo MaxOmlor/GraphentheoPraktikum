@@ -162,4 +162,4 @@ if __name__ == '__main__':
 
     partitions = partition_louvain_normalized(graph)
 
-      (partitions)
+    (partitions)
