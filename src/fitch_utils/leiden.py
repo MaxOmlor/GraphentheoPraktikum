@@ -99,7 +99,7 @@ def modified_partition_delta(graph: networkx.Graph, v, subset, h_p, q_func):
     q = q_func(graph,p)
     return q-h_p
 
-def find_best_move(partitions, q_func, v):
+def find_best_move(graph: networkx.Graph,partitions, q_func, v):
     h_p = q_func(graph,partitions)
     modified_partitions = [move_node_to_partition(partitions, v, c) for c in partitions]
     modified_partition_qualities = [q_func(graph,p) for p in modified_partitions]
@@ -121,7 +121,7 @@ def move_nodes_fast(graph: networkx.Graph, partitions: list[list], q_func):
     while any(queue):
         v = queue.pop(0)
         
-        delta, best_partition = find_best_move(result_partitions, q_func, v)
+        delta, best_partition = find_best_move(graph,result_partitions, q_func, v)
         
         if delta > 0:
             result_partitions = best_partition
