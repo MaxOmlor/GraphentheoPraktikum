@@ -94,9 +94,11 @@ def quality_function_2part(graph: networkx.Graph, partitions: list[list]) -> flo
     #print(f'{partitions=}')
     return weight - max_weight*distance_2parts
 
-def modified_partition_delta(graph: networkx.Graph, v, subset, h_p, q_func,partitions):
+def modified_partition_delta(aggregate_graph: networkx.Graph,original_graph: networkx.Graph, v, subset, h_p, q_func,partitions):
     p = move_node_to_partition(partitions, v, subset)
-    q = q_func(graph,p)
+    p_flattend = [flatten(c) for c in p]
+    q = q_func(original_graph,p_flattend)
+    #print(f'{q=} {h_p=} {q-h_p=}')
     return q-h_p
 
 def find_best_move(graph: networkx.Graph,partitions, q_func, v):
@@ -153,7 +155,7 @@ def singleton_partition(graph: networkx.Graph):
     return partitions
 
 def partition_leiden_normalized(graph: networkx.Graph):
-    print("partition_leiden_normalized")
+    #print("partition_leiden_normalized")
              # normalize weights, i.e. subtract the average weight from each edge
     mean_weight = np.mean([graph.edges[e]['weight'] for e in graph.edges])
     
@@ -174,11 +176,11 @@ def refine_partition(aggregate_graph: networkx.Graph,original_graph: networkx.Gr
 def get_edges_weights(graph: networkx.Graph,set1, set2):
     if isinstance(set1, int): # wenn node
         set1 = [set1]
-    print(f'{set1=}, {set2=}')
+    #print(f'{set1=}, {set2=}')
     flat_set1 = flatten(set1)
     flat_set2 = flatten(set2)
-    print(f'{flat_set1=}, {flat_set2=}')
-    print(f'{graph.nodes=}')
+    #print(f'{flat_set1=}, {flat_set2=}')
+    #print(f'{graph.nodes=}')
     return [graph.edges[(v,w)]['weight'] for w in flatten(set2) for v in flatten(set1) if w != v]
 
 def is_well_connected(graph: networkx.Graph,set1, set2) -> bool:
@@ -186,16 +188,18 @@ def is_well_connected(graph: networkx.Graph,set1, set2) -> bool:
     # return sum(get_edges_weights(set1, set2)) >= connectivness_threshhold*len_flatten(set1) * (len_flatten(set2) - len_flatten(set1))
     #print(f'{set1=}, {set2=}')
     ret_sum = sum(get_edges_weights(graph,set1, set2))
-    print(f'{ret_sum=}')
+    #print(f'{ret_sum=}')
     return ret_sum <= connectivness_threshhold
 
-def get_prop(graph: networkx.Graph, v, subset, h_p, q_func, degree_of_randomness, partitions):
-    part_delta = modified_partition_delta(graph, v, subset, h_p, q_func,partitions)
+def get_prop(aggregate_graph: networkx.Graph,original_graph: networkx.Graph, v, subset, h_p, q_func, degree_of_randomness, partitions):
+    part_delta = modified_partition_delta(aggregate_graph,original_graph, v, subset, h_p, q_func,partitions)
+    #print(f'{part_delta=}')
+
     if part_delta >= 0:
-        #print(f'{part_delta=}')
         #print(f'{degree_of_randomness=}')
         ####todo: Fix this
         try:
+            #print(f'{math.exp((1/degree_of_randomness) * part_delta)=}')
             return math.exp((1/degree_of_randomness) * part_delta)
         except:
             # return largest float possible
@@ -203,39 +207,39 @@ def get_prop(graph: networkx.Graph, v, subset, h_p, q_func, degree_of_randomness
     else:
         return 0
 
-def get_props(graph: networkx.Graph, partitions, v, T, q_func):
+def get_props(aggregate_graph: networkx.Graph,original_graph: networkx.Graph, partitions, v, T, q_func):
     degree_of_randomness = 0.01
-    h_p = q_func(graph,partitions)
+    partitions_flat = [flatten(p) for p in partitions]
+    h_p = q_func(original_graph,partitions_flat)
 
-    props = [get_prop(graph, v, c, h_p, q_func, degree_of_randomness,partitions) for c in T]
+    props = [get_prop(aggregate_graph,original_graph, v, c, h_p, q_func, degree_of_randomness,partitions) for c in T]
     return props
 
 def merge_nodes_subset(aggregate_graph: networkx.Graph,original_graph: networkx.Graph, partitions: list[list], subset, q_func):
     ####
-    print("#################################################")
-    print("merge_nodes_subset:")
+    #print("#################################################")
+    #print("merge_nodes_subset:")
     result_partitions = copy.deepcopy(partitions)
-    print(f'{subset=}')
+    #print(f'{subset=}')
 
     R = [v for v in subset if is_well_connected(original_graph,v, subset)]
 
-    print(f'{R=}')
+    #print(f'{R=}')
 
     for v in R:
         if [v] in result_partitions:
             T = [c for c in result_partitions if is_well_connected(original_graph,v, subset)]
-            props = get_props(aggregate_graph, result_partitions, v, T, q_func)
+            props = get_props(aggregate_graph, original_graph, result_partitions, v, T, q_func)
             partition = random.choices(T, props, k=1)[0]
-            print(f'{partition=}')
-            print(f'{v}')
-            print(f'{result_partitions=}')
-            print(f'{props=}')
-
+            #print(f'{partition=}')
+            #print(f'{v}')
+            #print(f'{result_partitions=}')
+            #print(f'{props=}')
             if not v in partition:
                 partition.append(v)
                 result_partitions.remove([v])
-    print(f'{result_partitions=}')
-    print("#################################################")
+    #print(f'{result_partitions=}')
+    #print("#################################################")
     return result_partitions
 
 def partition_leiden(graph: networkx.Graph):
@@ -258,7 +262,9 @@ def partition_leiden(graph: networkx.Graph):
             break
     # return flatten(partitions)
     #remove empty partitions
-    return [flatten(p) for p in partitions]
+    partition_flat = [flatten(p) for p in partitions]
+    #print(f'{partition_flat=}')
+    return partition_flat
 
 if __name__ == '__main__':
     num_nodes = 4
