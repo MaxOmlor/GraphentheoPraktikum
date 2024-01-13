@@ -2,3 +2,6 @@ venv/
 generated_testset/
 *.pyc
 *.csv
+break_leiden/
+testset/
+failed_graphs/

@@ -3,76 +3,41 @@
 ## Aufgaben
 
 ### WP1
-
-#### 2. Partial function 
-
-- [x]
-
+#### 2. Partial function
+- [x] 
 #### 2b. Flag for removal of all Edges
-
 - [x]
-
 #### 3. Generation of trees
-
-- [x]
-
+- [x] 
 #### 4. Partial on random trees
-
-- [x]
-
+- [x] 
 #### 5. Benchmark
-
-- [x]
-
+- [ ]
 #### 6. Fitch Sat
-
-- [x]
-
+- [ ]
 #### 7. Symmetric Difference
-
-- [x]
+- [ ]
 
 ### WP2
-
-#### 1. Generate Weights with Distributions
-
-- [x]
-
-#### 2. Partition Framework
-
-- [x]
-
-#### 3. Greedy Heuristic Partitioning
-
-- [x]
-
-#### 4. Random Partitioning
-
-- [x]
-
-#### 5. Louvain Algorithm
-
-- [x]
-
-#### 6. Leiden Algorithm
+#### 1.
+- [ ]
+#### 2.
+- [ ]
+#### 3.
+- [ ]
+#### 4.
+- [ ]
+#### 5.
+- [ ]
+#### 6.
+- [ ]
+#### 7.
+- [ ]
+#### 8.
+- [ ]
+#### 9. 
 
 - [ ]
-
-#### 7. Benchmark Algorithms on Weights
-
-- [ ]
-
-#### 8. Symmetric Difference
-
-- [ ]
-
-#### 9. Performance Comparison
-
-- [ ]
-
-## command
-
--h für help
 
 ## venv
 
@@ -92,12 +57,6 @@ requirements.txt installieren
 
 ```bash
 pip install -r requirements.txt
-```
-
-requirements.txt updaten
-
-```bash
-pip freeze > requirements.txt
 ```
 
 venv zu ipkernal hinzufügen

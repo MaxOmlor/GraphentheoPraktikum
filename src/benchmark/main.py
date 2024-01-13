@@ -10,6 +10,9 @@ from tqdm import tqdm
 import csv
 from pyfiglet import Figlet
 from algs import Algs
+import json
+import numpy as np
+
 
 import preprocess
 from algs import Algs
@@ -68,6 +71,8 @@ def run_single_benchmark(run_func, data, rel, leaves):
     }
 
 def dict_list_to_csv(dict_list: list[dict], file_path: str):
+    if not any(dict_list):
+        return
     with open(file_path, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=dict_list[0].keys())
 
@@ -80,6 +85,30 @@ def dict_list_to_csv(dict_list: list[dict], file_path: str):
                 raise ValueError(f'dict in list must contain the same keys {dict_list[0].keys()=} != {d.keys()=}')
             writer.writerow(d)
 
+def dump_json(data_dict: dict, file_path: str):
+    try:
+        with open(file_path, 'w') as f:
+            json.dump(convert_tuples_to_strings(data_dict), f)
+    except:
+        raise ValueError(f'{data_dict=}')
+def dump_tree(tree: nx.Graph, file_path: str):
+    nx.write_graphml(tree, file_path)
+def dump_shit(data_dict: dict, tree: nx.Graph, file_name: str, dir_path='failed_graphs'):
+    file_path = os.path.join(dir_path, file_name)
+    dump_json(data_dict, file_path+'.json')
+    dump_tree(tree, file_path+'.graphml')
+
+def load_json(file_path: str):
+    with open(file_path, 'r') as f:
+        return restore_tuples(json.load(f))
+def load_tree(file_path: str):
+    return nx.read_graphml(file_path)
+def load_shit(file_name: str, dir_path='failed_graphs'):
+    file_path = os.path.join(dir_path, file_name)
+    data_dict = load_json(file_path+'.json')
+    tree = load_tree(file_path+'.graphml')
+    return data_dict, tree
+
 def run_benchmark(args):
     # setup
     ### create trees
@@ -87,35 +116,67 @@ def run_benchmark(args):
     fitch_graphs = []
     if args.trees:
         cotrees = create_tree_data(args.runs, min_size=args.min, max_size=args.max)
-    if args.input:
-        fitch_graphs = get_tree_data_from_file(args.input)
-    if len(cotrees) + len(fitch_graphs)== 0:
+    if args.input and not args.load_dump:
+        #todo: """temporary workaround"""
+        cotrees = get_tree_data_from_file(args.input)
+    relations = []
+        
+    if len(cotrees) + len(fitch_graphs)== 0 and not args.load_dump:
         print('No trees found')
         return
-    
+
     ### get relations (with a tqdm loadbar)
-    bar = tqdm(total=len(cotrees) + len(fitch_graphs), desc='load relations')
-    relations = []
-    for tree in cotrees:
-        relations.append(lib.cotree_to_rel(tree))
-        bar.update(1)
-    for fitch in fitch_graphs:
-        relations.append(lib.graph_to_rel(fitch))
-        bar.update(1)
-    bar.close()
+    if not args.load_dump:
+        bar = tqdm(total=len(cotrees) + len(fitch_graphs), desc='load relations')
+        for tree in cotrees:
+            relations.append(lib.cotree_to_rel(tree))
+            bar.update(1)
+        for fitch in fitch_graphs:
+            relations.append(lib.graph_to_rel(fitch))
+            bar.update(1)
+            bar.close()
     
     ### create partials
     partials = [make_partial(rel, args.partial) for rel in relations]
+    
+    # chick if folder failed_graphs exists
+    if not os.path.exists('failed_graphs'):
+        os.makedirs('failed_graphs')
 
-    # run
+    ###ascii art of a chick
+    '''''''''
+     ( o>
+      /) )
+      `"`
+    '''''''''
+
+    test_data = []
+    if args.load_dump:
+        # get list of names without extensions
+        file_names = {os.path.splitext(file)[0] for file in os.listdir(args.input)}
+        for name in file_names:
+            print(f'loading {name}')
+            data_dict, tree = load_shit(name, args.input)
+            data_dict['data']['rel'] = convert_rel_items_to_tuple(data_dict['data']['rel'])
+            test_data.append((tree, convert_rel_items_to_tuple(data_dict['rel']), data_dict['partial'], data_dict['data']))
+
+    else:
+        alg_input_data = []
+        for partial, tree in zip(partials, cotrees):
+            leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
+            data = preprocess.preprocess(partial, leaves, (0,1,2),{'present': (5, .1,1), 'nonpresent': (.5,.1,1)})
+            alg_input_data.append(data)
+        
+        test_data = list(zip(cotrees, relations, partials, alg_input_data))
+
+    # runinp
     ### run alg1
     results = []
     # for i in range(len(trees)):
     pbar = tqdm(total=len(cotrees), desc='run benchmarks')
-    for tree, rel, partial in zip(cotrees, relations, partials):
+    for i, (tree, rel, partial, data) in enumerate(test_data):
         leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
         tree_hash = hash(tree)
-        data = preprocess.preprocess(partial, leaves, (0,1,2),{'present': (5, .1,1), 'nonpresent': (.5,.1,1)})
         if args.alg1:
             result = run_single_benchmark(Algs.run_alg1, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg1'})
@@ -137,8 +198,18 @@ def run_benchmark(args):
             results.append({**result, 'tree': tree_hash, 'alg': 'Louvain'})
         
         if args.leiden:
-            result = run_single_benchmark(Algs.run_leiden, data, rel, leaves)
-            results.append({**result, 'tree': tree_hash, 'alg': 'Leiden'})
+            # try:
+                result = run_single_benchmark(Algs.run_leiden, data, rel, leaves)
+                results.append({**result, 'tree': tree_hash, 'alg': 'Leiden'})
+            # ''except:
+            #     print(f'Leiden failed')
+            #     file_name = f'leiden_fail_{i}'
+            #     info_dict = {
+            #         'data': data,
+            #         'rel': rel,
+            #         'partial': partial,
+            #     }
+            #  ''   dump_shit(info_dict, tree, file_name)
 
         if args.greedy_sum:
             result = run_single_benchmark(Algs.run_greedy_sum, data, rel, leaves)
@@ -161,6 +232,75 @@ def run_benchmark(args):
     pbar.close()
     return results
 
+def convert_tuples_to_strings(d):
+    def recursive_convert(d):
+        if isinstance(d, dict):
+            for key, value in list(d.items()):
+                if isinstance(value, np.ndarray):
+                    # !!achtung achtung fehlerverdächtig!!
+                    d[key] = value.tolist()[0]  # NumPy-Array in Liste umwandeln
+                if isinstance(key, tuple):
+                    new_key = f"tuple{key}"
+                    d[new_key] = d.pop(key)
+                if isinstance(value, (dict, list)):
+                    recursive_convert(value)
+        elif isinstance(d, list):
+            for i, item in enumerate(d):
+                if isinstance(item, (dict, list)):
+                    recursive_convert(item)
+
+    recursive_convert(d)
+    return d
+
+def restore_tuples(d):
+    def recursive_restore(d):
+        if isinstance(d, dict):
+            for key, value in list(d.items()):
+                if isinstance(key, str) and key.startswith('tuple(') and key.endswith(')'):
+                    new_key = tuple(map(int, key[6:-1].split(', ')))
+                    d[new_key] = d.pop(key)
+                    key = new_key
+
+                new_key = convert_to_suitable_type(key)
+                d[new_key] = d.pop(key)
+                key = new_key
+
+                if isinstance(value, (dict, list)):
+                    recursive_restore(value)
+        elif isinstance(d, list):
+            for i, item in enumerate(d):
+                if isinstance(item, (dict, list)):
+                    recursive_restore(item)
+
+    restored_dict = d.copy()
+    recursive_restore(restored_dict)
+    return restored_dict
+
+def convert_rel_items_to_tuple(rel):
+    return {key: [tuple(l) for l in value] for key, value in rel.items()}
+
+def convert_to_suitable_type(x):
+    if isinstance(x, str):
+        try:
+            number = int(x)
+            return number
+        except ValueError:
+            pass
+    return x
+
+if False:
+    # Beispielaufruf
+    nested_dict = {
+        (1, 2): {'c': 1},
+        'd': [{(3,4): 2}, ('f', 'g')],
+        'h': ('i', 'j')
+    }
+
+    converted_dict = convert_tuples_to_strings(nested_dict)
+    print(f'{converted_dict=}')
+    restored_dict = restore_tuples(converted_dict)
+    print(f'{restored_dict=}')
+
 if __name__ == '__main__':
     ### parse arguments
     parser = argparse.ArgumentParser(description='Run Benchmarks.')
@@ -175,6 +315,8 @@ if __name__ == '__main__':
     parser.add_argument('--greedy_average', action='store_true', help='Run greedy average')
     parser.add_argument('--random_sum', action='store_true', help='Run random sum')
     parser.add_argument('--random_average', action='store_true', help='Run random average')
+
+    parser.add_argument('--load_dump', action='store_true', help='Load debug files.')
 
     ### Input file
     parser.add_argument('--input', type=str, help='Input file')

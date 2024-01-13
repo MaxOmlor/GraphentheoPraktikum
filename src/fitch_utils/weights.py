@@ -15,7 +15,7 @@ def assign_rel_weights(e_completed, e_complement, rel, weight) -> dict[tuple[int
         else:
             rel_weights.append((e, -weight))
     for e in e_complement:
-        rel_weights.append((e, 0.))
+        rel_weights.append((e, np.array([0.])))
     rel_weights_dict = dict(rel_weights)
     return rel_weights_dict
 
