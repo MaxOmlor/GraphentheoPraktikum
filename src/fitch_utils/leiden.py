@@ -75,8 +75,8 @@ def move_node_to_partition(partitions: list[list], node, partition):
     # add node to a certain partition
     result_partitions[partition_index].append(node)
 
-    # remove empty comunities
-    result_partitions = [p for p in result_partitions if p]
+    # only non-empty partitions
+    result_partitions = [p for p in result_partitions if len(p) > 0]
     
     print(f'{result_partitions=}')
     print('#'*20)
@@ -166,13 +166,15 @@ def create_aggregate_graph(graph: networkx.Graph, partitions: list[list]) -> net
     #         result_graph, new_node = collapse_nodes(result_graph, new_node, n)
     # dprint(f'{result_graph.nodes=}')
     # return result_graph
+    tuple_partitions = [tuple(p) for p in partitions]
     result_graph = networkx.Graph()
-    result_graph.add_nodes_from(partitions)
-    for c1 in partitions:
-        for c2 in partitions:
+    result_graph.add_nodes_from(tuple_partitions)
+    for c1 in tuple_partitions:
+        for c2 in tuple_partitions:
             if c1 != c2:
                 weight = sum(graph.edges[(v, w)]['weight'] for v in c1 for w in c2 if (v,w) in graph.edges)
                 result_graph.add_edge(c1, c2, weight=weight)
+    dprint(f'{result_graph.nodes=}')
     return result_graph
 
 def singleton_partition(graph: networkx.Graph):
@@ -230,8 +232,8 @@ def get_prop(aggregate_graph: networkx.Graph,original_graph: networkx.Graph, v, 
             return math.exp((1/degree_of_randomness) * part_delta)
         except:
             # return largest float possible
-            # return 10e200
-            return math.inf
+            # return max float
+            return 1.7976931348623157e+300
     else:
         return 0
 
@@ -260,6 +262,8 @@ def merge_nodes_subset(aggregate_graph: networkx.Graph,original_graph: networkx.
             T = [c for c in result_partitions if is_well_connected(original_graph,c, subset)]
             props = get_props(aggregate_graph, original_graph, result_partitions, v, T, q_func)
             random.seed(42) #for reproducability of results. If you find this in the final version, please remove it.
+            if sum(props) == 0:
+                continue
             partition = random.choices(T, props, k=1)[0]
             dprint(f'  {partition=}')
             dprint(f'  {v=}')
@@ -282,6 +286,9 @@ def partition_leiden(graph: networkx.Graph):
 
     done = False
     while True:
+        if partitions == [[]]:
+            ## exception for empty graph
+            raise ValueError("Empty Partition!")
         partitions = move_nodes_fast(aggregate_graph, partitions, q_func)
         done = len(partitions) == 2#len(aggregate_graph.nodes)# This condition can not be true if we do not merge nodes in the graph.
         ### Possible solution: Keep track of two graphs, one with merged nodes and one without. The one without is used for edge checking
@@ -289,7 +296,10 @@ def partition_leiden(graph: networkx.Graph):
         if not done:
             partitions_refined = refine_partition(aggregate_graph, original_graph, partitions, q_func)
             aggregate_graph = create_aggregate_graph(aggregate_graph, partitions_refined)
-            partitions = [[v for v in c if v in aggregate_graph.nodes] for c in partitions]
+            # partitions = [[v for v in c if v in aggregate_graph.nodes] for c in partitions]
+            partitions = [[v for v in aggregate_graph.nodes if set(v).issubset(set(c))] for c in partitions]
+            partitions = [c for c in partitions if len(c) > 0]
+            dprint(f'{partitions=}')
 
         if done:
             break
