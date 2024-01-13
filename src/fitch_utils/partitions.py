@@ -4,7 +4,7 @@ import sys
 sys.path.append('fitch-graph-prak')
 
 import lib
-from weights import assign_all_weights
+from fitch_utils.weights import assign_all_weights
 import random
 
 
