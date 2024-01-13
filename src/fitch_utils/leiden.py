@@ -135,7 +135,7 @@ def move_nodes_fast(graph: networkx.Graph, partitions: list[list], q_func):
     print(f'{queue=}')
     result_partitions = copy.deepcopy(partitions)
 
-    while any(queue):
+    while len(queue) > 0:
         v = queue.pop(0)
         
         delta, best_partition = find_best_move(graph,result_partitions, q_func, v)
@@ -154,17 +154,25 @@ def move_nodes_fast(graph: networkx.Graph, partitions: list[list], q_func):
     return result_partitions
 
 def create_aggregate_graph(graph: networkx.Graph, partitions: list[list]) -> networkx.Graph:
-    dprint("create_aggregate_graph:")
-    result_graph = graph
+    # dprint("create_aggregate_graph:")
+    # result_graph = graph
 
-    for p in partitions:
-        if len(p) <= 1:
-            continue
+    # for p in partitions:
+    #     if len(p) <= 1:
+    #         continue
         
-        new_node = p[0]
-        for n in p[1:]:
-            result_graph, new_node = collapse_nodes(result_graph, new_node, n)
-    dprint(f'{result_graph.nodes=}')
+    #     new_node = p[0]
+    #     for n in p[1:]:
+    #         result_graph, new_node = collapse_nodes(result_graph, new_node, n)
+    # dprint(f'{result_graph.nodes=}')
+    # return result_graph
+    result_graph = networkx.Graph()
+    result_graph.add_nodes_from(partitions)
+    for c1 in partitions:
+        for c2 in partitions:
+            if c1 != c2:
+                weight = sum(graph.edges[(v, w)]['weight'] for v in c1 for w in c2 if (v,w) in graph.edges)
+                result_graph.add_edge(c1, c2, weight=weight)
     return result_graph
 
 def singleton_partition(graph: networkx.Graph):
@@ -188,8 +196,8 @@ def partition_leiden_normalized(graph: networkx.Graph):
 
 def refine_partition(aggregate_graph: networkx.Graph,original_graph: networkx.Graph, partitions: list[list], q_func):
     refined_partitions = singleton_partition(aggregate_graph)
-    for p in partitions:
-        refined_partitions = merge_nodes_subset(aggregate_graph,original_graph, refined_partitions, p, q_func)
+    for c in partitions:
+        refined_partitions = merge_nodes_subset(aggregate_graph,original_graph, refined_partitions, c, q_func)
     return refined_partitions
 
 def get_edges_weights(graph: networkx.Graph,set1, set2):
@@ -222,14 +230,16 @@ def get_prop(aggregate_graph: networkx.Graph,original_graph: networkx.Graph, v, 
             return math.exp((1/degree_of_randomness) * part_delta)
         except:
             # return largest float possible
-            return 10e200
+            # return 10e200
+            return math.inf
     else:
         return 0
 
 def get_props(aggregate_graph: networkx.Graph,original_graph: networkx.Graph, partitions, v, T, q_func):
     degree_of_randomness = 0.01
-    partitions_flat = [flatten(p) for p in partitions]
-    h_p = q_func(original_graph,partitions_flat)
+    # partitions_flat = [flatten(p) for p in partitions]
+    # h_p = q_func(original_graph,partitions_flat)
+    h_p = q_func(aggregate_graph,partitions)
 
     props = [get_prop(aggregate_graph,original_graph, v, c, h_p, q_func, degree_of_randomness,partitions) for c in T]
     return props
@@ -247,7 +257,7 @@ def merge_nodes_subset(aggregate_graph: networkx.Graph,original_graph: networkx.
 
     for v in R:
         if [v] in result_partitions:
-            T = [c for c in result_partitions if is_well_connected(original_graph,v, subset)]
+            T = [c for c in result_partitions if is_well_connected(original_graph,c, subset)]
             props = get_props(aggregate_graph, original_graph, result_partitions, v, T, q_func)
             random.seed(42) #for reproducability of results. If you find this in the final version, please remove it.
             partition = random.choices(T, props, k=1)[0]
@@ -256,7 +266,8 @@ def merge_nodes_subset(aggregate_graph: networkx.Graph,original_graph: networkx.
             dprint(f'  {result_partitions=}')
             dprint(f'  {props=}')
             if not v in partition:
-                partition.append(v)
+                result_partitions[result_partitions.index(partition)].append(v)
+                # partition.append(v)
                 result_partitions.remove([v])
     dprint(f'{result_partitions=}')
     dprint("#################################################")
@@ -265,9 +276,10 @@ def merge_nodes_subset(aggregate_graph: networkx.Graph,original_graph: networkx.
 def partition_leiden(graph: networkx.Graph):
     q_func = quality_function_2part
 
-    aggregate_graph = graph # G
+    aggregate_graph = copy.deepcopy(graph) # G
     original_graph = copy.deepcopy(graph) # G_0
     partitions = singleton_partition(aggregate_graph)
+
     done = False
     while True:
         partitions = move_nodes_fast(aggregate_graph, partitions, q_func)
@@ -275,9 +287,9 @@ def partition_leiden(graph: networkx.Graph):
         ### Possible solution: Keep track of two graphs, one with merged nodes and one without. The one without is used for edge checking
         ### The one with is used for merging nodes.
         if not done:
-            partitions = refine_partition(aggregate_graph, original_graph, partitions, q_func)
-            aggregate_graph = create_aggregate_graph(aggregate_graph, partitions)
-
+            partitions_refined = refine_partition(aggregate_graph, original_graph, partitions, q_func)
+            aggregate_graph = create_aggregate_graph(aggregate_graph, partitions_refined)
+            partitions = [[v for v in c if v in aggregate_graph.nodes] for c in partitions]
 
         if done:
             break
