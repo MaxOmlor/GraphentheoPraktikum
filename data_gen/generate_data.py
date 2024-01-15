@@ -9,7 +9,8 @@ import subprocess
 import time
 import multiprocessing
 import tqdm
-import src.fitch_utils.random_trees as random_trees
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from src.fitch_utils import random_trees
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -43,13 +44,21 @@ def build_command(algorithm_parameters, runs_parameters, nodes, percentages, dis
     return command
 
 def run_command(command):
-    subprocess.call(command, shell=True)
+    #call subprocess quiet
+    subprocess.call(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    
 
 #load .tests.json
 with open('./data_gen/tests.json') as f:
     tests = json.load(f)
 
 if __name__ == "__main__":
+
+## generate tree data
+    print("Generating tree data")
+    for size in tests['Nodes']:
+        random_trees.create_testset(tests["Runs"], "./data_gen/trees",True, False, size, False)
+
     #multiprocessing.freeze_support()
     algorithm_parameters = ""
     alg_list = tests['Algs']
