@@ -58,16 +58,26 @@ def get_tree_data_from_file(path: str):
     return trees
 
 def run_single_benchmark(run_func, data, rel, leaves):
+    success = True
+
     start_time = datetime.now()
-    output = run_func(data)
+    try:
+        output = run_func(data)
+    except:
+        success = False
+
     delta_time = datetime.now() - start_time
 
-    symmetric_difference = lib.sym_diff(output, rel, leaves)
+    if success:
+        symmetric_difference = lib.sym_diff(output, rel, leaves)
+    else:
+        symmetric_difference = 0.
     return {
         'delta_time': delta_time,
         'symmetric_difference': symmetric_difference,
         'nodes': leaves,
         'rel_size': len(rel[0]) + len(rel[1]) + len(rel['d']),
+        'success': success,
     }
 
 def dict_list_to_csv(dict_list: list[dict], file_path: str):
@@ -188,10 +198,6 @@ def run_benchmark(args):
         if args.normal:
             result = run_single_benchmark(Algs.run, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg2_normal'})
-    
-        if args.sat:
-            result = lib.check_fitch_graph(lib.rel_to_fitch(partial))
-            results.append({'sat': result, 'tree': tree_hash, 'alg': 'SAT'})
 
         if args.louvain:
             result = run_single_benchmark(Algs.run_louvain, data, rel, leaves)
@@ -199,8 +205,8 @@ def run_benchmark(args):
         
         if args.leiden:
             # try:
-                result = run_single_benchmark(Algs.run_leiden, data, rel, leaves)
-                results.append({**result, 'tree': tree_hash, 'alg': 'Leiden'})
+            result = run_single_benchmark(Algs.run_leiden, data, rel, leaves)
+            results.append({**result, 'tree': tree_hash, 'alg': 'Leiden'})
             # ''except:
             #     print(f'Leiden failed')
             #     file_name = f'leiden_fail_{i}'
@@ -226,6 +232,20 @@ def run_benchmark(args):
         if args.random_average:
             result = run_single_benchmark(Algs.run_random_average, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Random Average'})
+
+        if args.louvain_lib:
+            result = run_single_benchmark(Algs.run_louvain_lib, data, rel, leaves)
+            results.append({**result, 'tree': tree_hash, 'alg': 'Louvain Lib'})
+
+        if args.dump:
+            file_name = f'tree_{i}'
+            info_dict = {
+                     'data': data,
+                     'rel': rel,
+                     'partial': partial,
+                 }
+            dump_shit(info_dict, tree, file_name,args.dump_dir)
+
         
 
         pbar.update(1)
@@ -308,15 +328,21 @@ if __name__ == '__main__':
     parser.add_argument('--alg1', action='store_true', help='Run algorithm 1')
     parser.add_argument('--alg2', action='store_true', help='Run algorithm 2')
     parser.add_argument('--normal', action='store_true', help='Run normal distribution')
-    parser.add_argument('--sat', action='store_true', help='Check satisfiability')
     parser.add_argument('--louvain', action='store_true', help='Run louvain')
+    parser.add_argument('--louvain-lib', action='store_true', help='Run louvain from library')
     parser.add_argument('--leiden', action='store_true', help='Run leiden')
     parser.add_argument('--greedy_sum', action='store_true', help='Run greedy sum')
     parser.add_argument('--greedy_average', action='store_true', help='Run greedy average')
     parser.add_argument('--random_sum', action='store_true', help='Run random sum')
     parser.add_argument('--random_average', action='store_true', help='Run random average')
+    # Probability distribution
+    parser.add_argument('--prob_dist_present', type=str, default='normal', help='Probability distribution')
+    parser.add_argument('--prob_dist_nonpresent', type=str, default='normal', help='Probability distribution')
+
 
     parser.add_argument('--load_dump', action='store_true', help='Load debug files.')
+    parser.add_argument('--dump_dir', type=str, default='tree_dump', help='Directory to dump debug files to.')
+    parser.add_argument('--dump', action='store_true', help='Dump debug files.')
 
     ### Input file
     parser.add_argument('--input', type=str, help='Input file')
@@ -341,7 +367,7 @@ if __name__ == '__main__':
 
     f = Figlet(font='slant')
     print(f.renderText('Benchmark...'))
-    if not any([args.alg1, args.alg2, args.normal, args.sat, args.louvain,args.leiden, args.greedy_sum, args.greedy_average, args.random_sum, args.random_average]):
+    if not any([args.alg1, args.alg2, args.normal, args.louvain,args.leiden, args.greedy_sum, args.greedy_average, args.random_sum, args.random_average]):
         print('No algorithms selected')
         sys.exit()
     if not any([args.input, args.trees]):
