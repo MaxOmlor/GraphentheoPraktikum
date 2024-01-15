@@ -5,6 +5,7 @@ import typing
 sys.path.append('fitch-graph-prak')
 
 import lib
+import louvain
 
 def dprint(out: str):
     if True:
@@ -45,6 +46,30 @@ def run_alg2_normal(data):
 def run_louvain(data):
     weights = data['weights']['normal']
     partition_func = louvain.partition_louvain_normalized
+    scoring_func = partitions.score_sum
+    
+    dprint('########################')
+    test = lib.partition_heuristic_scaffold(
+        weights['d'],weights[1],weights[0],data['nodes'],
+        partition_func, scoring_func,
+        data['rel'])
+    return test
+
+def run_louvain_standard(data):
+    weights = data['weights']['normal']
+    partition_func = louvain.louvain_standard
+    scoring_func = partitions.score_sum
+    
+    dprint('########################')
+    test = lib.partition_heuristic_scaffold(
+        weights['d'],weights[1],weights[0],data['nodes'],
+        partition_func, scoring_func,
+        data['rel'])
+    return test
+
+def run_louvain_custom(data):
+    weights = data['weights']['normal']
+    partition_func = louvain.louvain_custom
     scoring_func = partitions.score_sum
     
     dprint('########################')

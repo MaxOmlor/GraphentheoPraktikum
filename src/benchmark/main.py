@@ -233,9 +233,13 @@ def run_benchmark(args):
             result = run_single_benchmark(Algs.run_random_average, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Random Average'})
 
-        if args.louvain_lib:
-            result = run_single_benchmark(Algs.run_louvain_lib, data, rel, leaves)
+        if args.louvain_standard:
+            result = run_single_benchmark(Algs.run_louvain_standard, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Louvain Lib'})
+        
+        if args.louvain_custom:
+            result = run_single_benchmark(Algs.run_louvain_custom, data, rel, leaves)
+            results.append({**result, 'tree': tree_hash, 'alg': 'Louvain Custom'})
 
         if args.dump:
             file_name = f'tree_{i}'
@@ -329,7 +333,8 @@ if __name__ == '__main__':
     parser.add_argument('--alg2', action='store_true', help='Run algorithm 2')
     parser.add_argument('--normal', action='store_true', help='Run normal distribution')
     parser.add_argument('--louvain', action='store_true', help='Run louvain')
-    parser.add_argument('--louvain-lib', action='store_true', help='Run louvain from library')
+    parser.add_argument('--louvain_standard', action='store_true', help='Run louvain_standard from library')
+    parser.add_argument('--louvain_custom', action='store_true', help='Run louvain_custom')
     parser.add_argument('--leiden', action='store_true', help='Run leiden')
     parser.add_argument('--greedy_sum', action='store_true', help='Run greedy sum')
     parser.add_argument('--greedy_average', action='store_true', help='Run greedy average')
