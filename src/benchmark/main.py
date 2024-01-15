@@ -433,7 +433,7 @@ if __name__ == '__main__':
     parser.add_argument('--output',default=None , type=str, help='Output file')
 
     ### Partial percentage
-    parser.add_argument('--partial', type=str,default=.2, help='Percentage of partials. possible input formats: 0.2, [0.1, 0.2, 0.3], [0:1:0.1]')
+    parser.add_argument('--partial', type=str,default='.2', help='Percentage of partials. possible input formats: 0.2, [0.1, 0.2, 0.3], [0:1:0.1]')
 
     ### Number of runs
     parser.add_argument('--runs', type=int, default=1000, help='Number of runs [if tree flag is set]')
