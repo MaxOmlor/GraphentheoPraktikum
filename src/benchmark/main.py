@@ -12,6 +12,7 @@ from pyfiglet import Figlet
 from algs import Algs
 import json
 import numpy as np
+import ast
 
 
 import preprocess
@@ -30,7 +31,6 @@ def create_tree_data(num_trees: int, min_size: int=0, max_size: int=math.inf):
     trees = []
     hashes = set()
 
-    pbar = tqdm(total=num_trees, desc='create trees  ')
     while len(hashes) < num_trees:
         tree = generate_random_cotree()
         leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
@@ -40,8 +40,6 @@ def create_tree_data(num_trees: int, min_size: int=0, max_size: int=math.inf):
             if hashed not in hashes:
                 hashes.add(hashed)
                 trees.append(tree)
-                pbar.update(1)
-    pbar.close()
     return trees
 
 ### reads the file, reads the paths in that file and loads those trees
@@ -49,7 +47,7 @@ def get_tree_data_from_file(path: str):
     trees = []
     with open(path, 'r') as f:
         #for loop for file with tqdm
-        for line in tqdm(f.readlines(), desc='read trees    '):
+        for line in f.readlines():
             line = line.strip()
             if line == '':
                 continue
@@ -132,18 +130,23 @@ def run_benchmark(args):
     relations = []
         
     if len(cotrees) + len(fitch_graphs)== 0 and not args.load_dump:
-        print('No trees found')
+        if not args.quiet:
+            print('No trees found')
         return
 
     ### get relations (with a tqdm loadbar)
     if not args.load_dump:
-        bar = tqdm(total=len(cotrees) + len(fitch_graphs), desc='load relations')
+        if not args.quiet:
+            bar = tqdm(total=len(cotrees) + len(fitch_graphs), desc='load relations')
         for tree in cotrees:
             relations.append(lib.cotree_to_rel(tree))
-            bar.update(1)
+            if not args.quiet:
+                bar.update(1)
         for fitch in fitch_graphs:
             relations.append(lib.graph_to_rel(fitch))
-            bar.update(1)
+            if not args.quiet:
+                bar.update(1)
+        if not args.quiet:
             bar.close()
     
     ### create partials
@@ -159,13 +162,16 @@ def run_benchmark(args):
       /) )
       `"`
     '''''''''
+    dists_present = get_tuple(args.prob_dist_present)
+    dists_nonpresent = get_tuple(args.prob_dist_nonpresent)
 
     test_data = []
     if args.load_dump:
         # get list of names without extensions
         file_names = {os.path.splitext(file)[0] for file in os.listdir(args.input)}
         for name in file_names:
-            print(f'loading {name}')
+            if not args.quiet:
+                print(f'loading {name}')
             data_dict, tree = load_shit(name, args.input)
             data_dict['data']['rel'] = convert_rel_items_to_tuple(data_dict['data']['rel'])
             test_data.append((tree, convert_rel_items_to_tuple(data_dict['rel']), data_dict['partial'], data_dict['data']))
@@ -174,7 +180,7 @@ def run_benchmark(args):
         alg_input_data = []
         for partial, tree in zip(partials, cotrees):
             leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
-            data = preprocess.preprocess(partial, leaves, (0,1,2),{'present': (5, .1,1), 'nonpresent': (.5,.1,1)})
+            data = preprocess.preprocess(partial, leaves, (0,1,2),{'present': dists_present, 'nonpresent': dists_nonpresent})
             alg_input_data.append(data)
         
         test_data = list(zip(cotrees, relations, partials, alg_input_data))
@@ -183,7 +189,8 @@ def run_benchmark(args):
     ### run alg1
     results = []
     # for i in range(len(trees)):
-    pbar = tqdm(total=len(cotrees), desc='run benchmarks')
+    if not args.quiet:
+        pbar = tqdm(total=len(cotrees), desc='run benchmarks')
     for i, (tree, rel, partial, data) in enumerate(test_data):
         leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
         tree_hash = hash(tree)
@@ -192,11 +199,11 @@ def run_benchmark(args):
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg1'})
 
         if args.alg2:
-            result = run_single_benchmark(Algs.run_alg2, data, rel, leaves)
+            result = run_single_benchmark(Algs.run_alg2_uniform, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg2'})
 
         if args.normal:
-            result = run_single_benchmark(Algs.run, data, rel, leaves)
+            result = run_single_benchmark(Algs.run_alg2_normal, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg2_normal'})
 
         if args.louvain:
@@ -251,9 +258,10 @@ def run_benchmark(args):
             dump_shit(info_dict, tree, file_name,args.dump_dir)
 
         
-
-        pbar.update(1)
-    pbar.close()
+        if not args.quiet:
+            pbar.update(1)
+    if not args.quiet:
+        pbar.close()
     return results
 
 def convert_tuples_to_strings(d):
@@ -275,6 +283,12 @@ def convert_tuples_to_strings(d):
 
     recursive_convert(d)
     return d
+
+#convert a string like (0.,1.,3.) to a tuple
+def get_tuple(input: str):
+    # Remove spaces, convert to tuple
+    return ast.literal_eval(input.replace(" ", ""))
+
 
 def restore_tuples(d):
     def recursive_restore(d):
@@ -343,7 +357,8 @@ if __name__ == '__main__':
     # Probability distribution
     parser.add_argument('--prob_dist_present', type=str, default='normal', help='Probability distribution')
     parser.add_argument('--prob_dist_nonpresent', type=str, default='normal', help='Probability distribution')
-
+    parser.add_argument('--median', action='store_true', default=False, help='Medial value')
+    parser.add_argument('--reciprocal', action='store_true', default=False, help='Reciprocal value')
 
     parser.add_argument('--load_dump', action='store_true', help='Load debug files.')
     parser.add_argument('--dump_dir', type=str, default='tree_dump', help='Directory to dump debug files to.')
@@ -368,15 +383,21 @@ if __name__ == '__main__':
     ### Number of runs
     parser.add_argument('--runs', type=int, default=1000, help='Number of runs')
 
+    ### quiet
+    parser.add_argument('--quiet', action='store_true', help='Quiet mode')
+
     args = parser.parse_args()
 
     f = Figlet(font='slant')
-    print(f.renderText('Benchmark...'))
+    if not args.quiet:
+        print(f.renderText('Benchmark...'))
     if not any([args.alg1, args.alg2, args.normal, args.louvain,args.leiden, args.greedy_sum, args.greedy_average, args.random_sum, args.random_average]):
-        print('No algorithms selected')
+        if not args.quiet:
+            print('No algorithms selected')
         sys.exit()
     if not any([args.input, args.trees]):
-        print('No input file or tree creation selected')
+        if not args.quiet:
+            print('No input file or tree creation selected')
         sys.exit()
     results = run_benchmark(args)
     dict_list_to_csv(results, args.output)

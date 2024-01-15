@@ -8,7 +8,7 @@ import lib
 import louvain
 
 def dprint(out: str):
-    if True:
+    if False:
         print(out)
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -26,7 +26,7 @@ def run_func_gen(partition_func, scoring_func, dist_type):
         test = lib.partition_heuristic_scaffold(
             weights['d'],weights[1],weights[0],data['nodes'],
             partition_func, scoring_func,
-            data['rel'])
+            data['rel'], True, True, data['median'], data['reciprocal'])
         return test
     return return_func
 
@@ -52,7 +52,7 @@ def run_louvain(data):
     test = lib.partition_heuristic_scaffold(
         weights['d'],weights[1],weights[0],data['nodes'],
         partition_func, scoring_func,
-        data['rel'])
+        data['rel'], True, True, data['median'], data['reciprocal'])
     return test
 
 def run_louvain_standard(data):
@@ -64,7 +64,7 @@ def run_louvain_standard(data):
     test = lib.partition_heuristic_scaffold(
         weights['d'],weights[1],weights[0],data['nodes'],
         partition_func, scoring_func,
-        data['rel'])
+        data['rel'], True, True, data['median'], data['reciprocal'])
     return test
 
 def run_louvain_custom(data):
@@ -76,7 +76,7 @@ def run_louvain_custom(data):
     test = lib.partition_heuristic_scaffold(
         weights['d'],weights[1],weights[0],data['nodes'],
         partition_func, scoring_func,
-        data['rel'])
+        data['rel'], True, True, data['median'], data['reciprocal'])
     return test
 
 def run_leiden(data):
@@ -88,7 +88,7 @@ def run_leiden(data):
     test = lib.partition_heuristic_scaffold(
         weights['d'],weights[1],weights[0],data['nodes'],
         partition_func, scoring_func,
-        data['rel'])
+        data['rel'], True, True, data['median'], data['reciprocal'])
     return test
 
 def run_greedy_sum(data):
@@ -100,7 +100,7 @@ def run_greedy_sum(data):
     test = lib.partition_heuristic_scaffold(
         weights['d'],weights[1],weights[0],data['nodes'],
         partition_func, scoring_func,
-        data['rel'])
+        data['rel'], True, True, data['median'], data['reciprocal'])
     return test
 
 def run_greedy_average(data):
@@ -112,7 +112,7 @@ def run_greedy_average(data):
     test = lib.partition_heuristic_scaffold(
         weights['d'],weights[1],weights[0],data['nodes'],
         partition_func, scoring_func,
-        data['rel'])
+        data['rel'], True, True, data['median'], data['reciprocal'])
     return test
 
 def run_random_sum(data):
@@ -124,7 +124,7 @@ def run_random_sum(data):
     test = lib.partition_heuristic_scaffold(
         weights['d'],weights[1],weights[0],data['nodes'],
         partition_func, scoring_func,
-        data['rel'])
+        data['rel'], True, True, data['median'], data['reciprocal'])
     return test
 
 def run_random_average(data):
@@ -136,5 +136,5 @@ def run_random_average(data):
     test = lib.partition_heuristic_scaffold(
         weights['d'],weights[1],weights[0],data['nodes'],
         partition_func, scoring_func,
-        data['rel'])
+        data['rel'], True, True, data['median'], data['reciprocal'])
     return test

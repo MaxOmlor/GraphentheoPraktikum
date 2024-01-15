@@ -4,7 +4,9 @@ import sys
 import random
 import argparse
 # import make_partial
+import tqdm
 import fitch_utils.make_partial as make_partial
+#import make_partial
 
 
 # sys.path.append('fitch-graph-prak')
@@ -137,19 +139,20 @@ def generate_random_partial(percent: float, min_size: int = 3, remove_all_direct
     return partial_rel
 
 
-def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool = True, min_size: int = 3, verbose: bool = False):
+def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool = True, size: int = 3, verbose: bool = False):
     ### ensure directory exists
 
-    if not os.path.exists(path + "/cotrees"):
-        os.makedirs(path + "/cotrees", exist_ok=True)
-    if not os.path.exists(path + "/fitch"):
-        os.makedirs(path + "/fitch", exist_ok=True)
+    # if not os.path.exists(path + "/cotrees"):
+    #     os.makedirs(path + "/cotrees", exist_ok=True)
+    if not os.path.exists(path + "/" + str(size)):
+        os.makedirs(path + "/" + str(size), exist_ok=True)
     
     ### avoid duplicate testcases, small trees have a high probability of being duplicates
     hashes = set()
 
     ### generate testcases
     attempts = 0
+    progress = tqdm.tqdm(total=n)
     for i in range(n):
         found_non_duplicate = False
         while not found_non_duplicate:
@@ -158,7 +161,7 @@ def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool =
             tree = generate_fitch_cotree()
             ### check for minimum size
             leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
-            if leaves < min_size:
+            if leaves < size or leaves > size:
                 continue
             ### calculate hash
             hashed = hash(tree)
@@ -169,20 +172,28 @@ def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool =
             ### generate fitch graph
             fitch = generate_fitch_graph(tree)
             hashes.add(hashed)
+            progress.update(1)
             ### save cotree
-            if cotrees:
-                filepath = path + "/cotrees/" + str(i) + ".graphml"
+            # if cotrees:
+            #     filepath = path + "/cotrees/" + str(i) + ".graphml"
+            #     fullpath = os.path.abspath(filepath)
+            #     nx.write_graphml(tree, fullpath)
+            #     if verbose:
+            #         print(fullpath)
+            ### save fitch graph
+            if fitch_graphs:
+                filepath = path +  "/" + str(size)+ "/" + str(i) + ".graphml"
                 fullpath = os.path.abspath(filepath)
                 nx.write_graphml(tree, fullpath)
                 if verbose:
                     print(fullpath)
-            ### save fitch graph
-            if fitch_graphs:
-                filepath = path + "/fitch/" + str(i) + ".graphml"
-                fullpath = os.path.abspath(filepath)
-                nx.write_graphml(fitch, fullpath)
-                if verbose:
-                    print(fullpath)
+    ## fill .txt file with all created tree paths
+    with open(path + "/"+ str(size)+ ".txt", "w") as f:
+        for i in range(n):
+            f.write(path + "/" + str(size)+ "/" + str(i) + ".graphml\n")
+
+
+    progress.close()
 
     
 
@@ -195,9 +206,11 @@ if __name__ == "__main__":
     parser.add_argument('path', type=str , help='path to save testset to')
     parser.add_argument('--fitch_graphs', default=True, help='generate fitch graphs')
     parser.add_argument('--cotrees', default=True, help='generate cotrees')
-    parser.add_argument('-min_size', type=int, default=3, help='minimum size of generated trees')
+    parser.add_argument('-size', type=int, default=3, help='minimum size of generated trees')
     parser.add_argument('-v', '--verbose',default=False, action='store_true', help='verbose output')
 
     args = parser.parse_args()
 
-    create_testset(args.n, args.path, args.fitch_graphs, args.cotrees, args.min_size, args.verbose)
+    sizes = [5,10,15,20,25,30,35]
+    for size in sizes:
+        create_testset(args.n, args.path, args.fitch_graphs, args.cotrees, size, args.verbose)
