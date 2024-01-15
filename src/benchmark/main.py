@@ -358,8 +358,8 @@ if __name__ == '__main__':
     parser.add_argument('--random_sum', action='store_true', help='Run random sum')
     parser.add_argument('--random_average', action='store_true', help='Run random average')
     # Probability distribution
-    parser.add_argument('--prob_dist_present', type=str, default='normal', help='Probability distribution')
-    parser.add_argument('--prob_dist_nonpresent', type=str, default='normal', help='Probability distribution')
+    parser.add_argument('--prob_dist_present', type=str, default='normal', help='Probability distribution for present edges')
+    parser.add_argument('--prob_dist_nonpresent', type=str, default='normal', help='Probability distribution for nonpresent edges')
     parser.add_argument('--median', action='store_true', default=False, help='Medial value')
     parser.add_argument('--reciprocal', action='store_true', default=False, help='Reciprocal value')
 
@@ -374,22 +374,23 @@ if __name__ == '__main__':
     parser.add_argument('--trees', action='store_true', help='Create trees')
 
     ### Min and Max
-    parser.add_argument('--min', type=int, default=5, help='Minimum number of leaves')
-    parser.add_argument('--max', type=int, default=math.inf, help='Maximum number of leaves')
+    parser.add_argument('--min', type=int, default=5, help='Minimum number of leaves [if tree flag is set]')
+    parser.add_argument('--max', type=int, default=math.inf, help='Maximum number of leaves [if tree flag is set]')
 
     ### Output file
-    parser.add_argument('--output',default="out.csv" , type=str, help='Output file')
+    parser.add_argument('--output',default=None , type=str, help='Output file')
 
     ### Partial percentage
     parser.add_argument('--partial', type=float,default=.2, help='Percentage of partials')
 
     ### Number of runs
-    parser.add_argument('--runs', type=int, default=1000, help='Number of runs')
+    parser.add_argument('--runs', type=int, default=1000, help='Number of runs [if tree flag is set]')
 
     ### quiet
     parser.add_argument('--quiet', action='store_true', help='Quiet mode')
 
     args = parser.parse_args()
+
 
     f = Figlet(font='slant')
     if not args.quiet:
@@ -403,5 +404,36 @@ if __name__ == '__main__':
             print('No input file or tree creation selected')
         sys.exit()
     results = run_benchmark(args)
-    dict_list_to_csv(results, args.output)
+
+    if args.output:
+        dict_list_to_csv(results, args.output)
+    else:
+        used_algs = []
+        if args.alg1:
+            used_algs.append('Alg1')
+        if args.alg2:
+            used_algs.append('Alg2')
+        if args.normal:
+            used_algs.append('Normal')
+        if args.louvain:
+            used_algs.append('Luvain')
+        if args.leiden:
+            used_algs.append('Leiden')
+        if args.greedy_sum:
+            used_algs.append('GreedySum')
+        if args.greedy_average:
+            used_algs.append('GreedyAverage')
+        if args.random_sum:
+            used_algs.append('RandomSum')
+        if args.random_average:
+            used_algs.append('RandomAverage')
+        used_algs_str = '_'.join(used_algs)
+
+        output_file = "out_"
+        output_file += f'input={os.path.basename(args.input).split(".")[0]}'
+        output_file += used_algs_str
+        output_file += f'partial={args.partial}'
+        output_file += ".csv"
+
+        dict_list_to_csv(results, output_file)
     
