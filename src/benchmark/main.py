@@ -15,6 +15,8 @@ import numpy as np
 np.seterr(all='ignore')
 import ast
 import warnings
+import re
+import numpy as np
 
 
 import preprocess
@@ -152,7 +154,7 @@ def run_benchmark(args):
             bar.close()
     
     ### create partials
-    partials = [make_partial(rel, args.partial) for rel in relations]
+    partials = [make_partial(rel, p) for p in parse_input_string_to_list(args.partial) for rel in relations]
     
     # chick if folder failed_graphs exists
     if not os.path.exists('failed_graphs'):
@@ -328,6 +330,48 @@ def convert_to_suitable_type(x):
             pass
     return x
 
+
+def parse_input_string_to_list(input_str):
+    '''
+    # Beispiele
+    input_str1 = '0.2'
+    input_str2 = '.5'
+    input_str3 = '0.002'
+    input_str4 = '[1, 2, 3]'
+    input_str5 = '[0:1:0.1]'
+    input_str6 = '[0:1:.1]'
+    input_str7 = '[0:100:20]'
+
+    print(parse_input_string_to_list(input_str1))  # Ausgabe: [0.2]
+    print(parse_input_string_to_list(input_str2))  # Ausgabe: [0.5]
+    print(parse_input_string_to_list(input_str3))  # Ausgabe: [0.002]
+    print(parse_input_string_to_list(input_str4))  # Ausgabe: [1.0, 2.0, 3.0]
+    print(parse_input_string_to_list(input_str5))  # Ausgabe: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    print(parse_input_string_to_list(input_str6))  # Ausgabe: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    print(parse_input_string_to_list(input_str7))  # Ausgabe: [0.0, 20.0, 40.0, 60.0, 80.0]
+    '''
+
+    # Option 1: Eine einzelne Zahl
+    if re.match(r'^\d+(\.\d+)?$', input_str):
+        return [float(input_str)]
+
+    # Option 2: Eine Liste von Zahlen
+    if re.match(r'^\[.*\]$', input_str):
+        input_str = input_str[1:-1]  # Klammern entfernen
+        numbers = re.findall(r'[-+]?\d*\.\d+|\d+', input_str)
+        return [float(num) for num in numbers]
+
+    # Option 3: Ein Slicing-Ausdruck
+    if re.match(r'^\[\d+:\d+(\.\d+)?:\d+\]$', input_str):
+        input_str = input_str[1:-1]  # Klammern entfernen
+        start, stop, step = map(float, re.findall(r'[-+]?\d*\.\d+|\d+', input_str))
+        return list(np.arange(start, stop, step))
+
+    # Wenn der Eingabestring kein derartiges Format hat, gib eine leere Liste zurück
+    return []
+
+
+
 if False:
     # Beispielaufruf
     nested_dict = {
@@ -381,7 +425,7 @@ if __name__ == '__main__':
     parser.add_argument('--output',default=None , type=str, help='Output file')
 
     ### Partial percentage
-    parser.add_argument('--partial', type=float,default=.2, help='Percentage of partials')
+    parser.add_argument('--partial', type=str,default=.2, help='Percentage of partials. possible input formats: 0.2, [0.1, 0.2, 0.3], [0:1:0.1]')
 
     ### Number of runs
     parser.add_argument('--runs', type=int, default=1000, help='Number of runs [if tree flag is set]')
