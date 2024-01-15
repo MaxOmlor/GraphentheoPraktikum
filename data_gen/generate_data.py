@@ -9,7 +9,9 @@ import subprocess
 import time
 import multiprocessing
 import tqdm
-
+import src.fitch_utils.random_trees as random_trees
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def build_command(algorithm_parameters, runs_parameters, nodes, percentages, dists_present, dists_nonpresent, median, reciprocal):
@@ -41,7 +43,6 @@ def build_command(algorithm_parameters, runs_parameters, nodes, percentages, dis
     return command
 
 def run_command(command):
-    print("Running: " + str(hash(command)))
     subprocess.call(command, shell=True)
 
 #load .tests.json
@@ -49,7 +50,7 @@ with open('./data_gen/tests.json') as f:
     tests = json.load(f)
 
 if __name__ == "__main__":
-    multiprocessing.freeze_support()
+    #multiprocessing.freeze_support()
     algorithm_parameters = ""
     alg_list = tests['Algs']
 
@@ -84,6 +85,7 @@ if __name__ == "__main__":
     parallel = 10
     # number of tests to run in total
     total = len(command_queue)
+
 
     count = multiprocessing.cpu_count()
     pool = multiprocessing.Pool(count)

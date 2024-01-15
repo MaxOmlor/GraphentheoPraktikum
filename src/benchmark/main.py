@@ -12,7 +12,9 @@ from pyfiglet import Figlet
 from algs import Algs
 import json
 import numpy as np
+np.seterr(all='ignore')
 import ast
+import warnings
 
 
 import preprocess
@@ -340,6 +342,7 @@ if False:
     print(f'{restored_dict=}')
 
 if __name__ == '__main__':
+    warnings.filterwarnings('ignore')
     ### parse arguments
     parser = argparse.ArgumentParser(description='Run Benchmarks.')
     ### Flags for which algorithms to run
