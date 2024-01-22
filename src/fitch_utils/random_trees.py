@@ -139,7 +139,7 @@ def generate_random_partial(percent: float, min_size: int = 3, remove_all_direct
     return partial_rel
 
 
-def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool = True, size: int = 3, verbose: bool = False):
+def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool = True, size: int = 3, verbose: bool = False, overwrite: bool = False):
     ### ensure directory exists
 
     # if not os.path.exists(path + "/cotrees"):
@@ -157,6 +157,11 @@ def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool =
         found_non_duplicate = False
         while not found_non_duplicate:
             attempts += 1
+            #check if file already exists
+            filepath = path +  "/" + str(size)+ "/" + str(i) + ".graphml"
+            fullpath = os.path.abspath(filepath)
+            if os.path.isfile(fullpath) and not overwrite:
+                continue
             ### generate random cotree
             tree = generate_fitch_cotree()
             ### check for minimum size
@@ -182,8 +187,6 @@ def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool =
             #         print(fullpath)
             ### save fitch graph
             if fitch_graphs:
-                filepath = path +  "/" + str(size)+ "/" + str(i) + ".graphml"
-                fullpath = os.path.abspath(filepath)
                 nx.write_graphml(tree, fullpath)
                 if verbose:
                     print(fullpath)
