@@ -40,6 +40,12 @@ def build_command(algorithm_parameters, runs_parameters, nodes, percentages, dis
     output_file += ".csv"
 
     command += " --output=\"" + output_file + "\""
+
+    #check existence of output file in ./data_gen/out/
+    if os.path.isfile(output_file):
+        return None
+
+
     #run command and wait for it to finish    
     return command
 
@@ -83,10 +89,13 @@ if __name__ == "__main__":
                 for med in median:
                     for rep in reciprocal:
                         for n in nodes:
-                            command_queue.append(build_command(algorithm_parameters, runs_parameters, n, percent, dist_p, dist_np, med, rep))
+                            command = build_command(algorithm_parameters, runs_parameters, n, percent, dist_p, dist_np, med, rep)
+                            if command is not None:
+                                command_queue.append(build_command(algorithm_parameters, runs_parameters, n, percent, dist_p, dist_np, med, rep))
 
     count = len(percentages) * len(dists_present) * len(dists_nonpresent) * len(median) * len(reciprocal) * len(nodes)
     print("Total number of tests: " + str(count))
+    print("Number of tests to run: " + str(len(command_queue)))
 
     ### I want to let a number of tests run in parallel
 
