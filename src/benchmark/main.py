@@ -63,10 +63,10 @@ def run_single_benchmark(run_func, data, rel, leaves):
     success = True
 
     start_time = datetime.now()
-    try:
-        output = run_func(data)
-    except:
-        success = False
+    # try:
+    output = run_func(data)
+    # except Exception as e:
+        # success = False
 
     delta_time = datetime.now() - start_time
 
@@ -130,7 +130,19 @@ def run_benchmark(args):
         cotrees = create_tree_data(args.runs, min_size=args.min, max_size=args.max)
     if args.input and not args.load_dump:
         #todo: """temporary workaround"""
-        cotrees = get_tree_data_from_file(args.input)
+        if os.path.isfile(args.input):
+            cotrees = get_tree_data_from_file(args.input)
+            print(f'{len(cotrees)=}')
+        else:
+            tree_file_list = find_files_with_extension(args.input, '.graphml')
+            if not args.quiet:
+                bar = tqdm(total=len(tree_file_list), desc='load tree files')
+            cotrees = []
+            for file in tree_file_list:
+                for tree in get_tree_data_from_file(file):
+                    cotrees.append(tree)
+                if not args.quiet:
+                    bar.update(1)
     relations = []
         
     if len(cotrees) + len(fitch_graphs)== 0 and not args.load_dump:
@@ -154,7 +166,18 @@ def run_benchmark(args):
             bar.close()
     
     ### create partials
-    partials = [make_partial(rel, p) for p in parse_input_string_to_list(args.partial) for rel in relations]
+    partial_values = parse_input_string_to_list(args.partial)
+    print(f'{partial_values=}')
+    if not args.quiet:
+        bar = tqdm(total=len(partial_values), desc='create partials')
+    partials = []
+    for p in partial_values:
+        for rel in relations:
+            partials.append(make_partial(rel, p))
+            # print(f'{rel=}')
+            # print(f'{partials[-1]=}')
+        if not args.quiet:
+            bar.update(1)
     
     # chick if folder failed_graphs exists
     if not os.path.exists('failed_graphs'):
@@ -196,6 +219,7 @@ def run_benchmark(args):
     if not args.quiet:
         pbar = tqdm(total=len(cotrees), desc='run benchmarks')
     for i, (tree, rel, partial, data) in enumerate(test_data):
+        # print(f'{(tree, rel, partial, data)=}')
         leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
         tree_hash = hash(tree)
         if args.alg1:
@@ -330,6 +354,15 @@ def convert_to_suitable_type(x):
             pass
     return x
 
+def find_files_with_extension(directory, extension):
+    matching_files = []
+
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith(f'.{extension}'):
+                matching_files.append(os.path.join(root, file))
+
+    return matching_files
 
 import re
 import numpy as np

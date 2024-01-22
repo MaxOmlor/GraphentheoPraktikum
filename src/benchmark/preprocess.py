@@ -11,6 +11,7 @@ def preprocess(rel: dict[typing.Any, list[tuple[int, int]]], num_nodes: int, ord
 
     return {
         'rel':rel,
+        # 'nodes': list(range(num_nodes)),
         'nodes': list(range(num_nodes)),
         'order': order,
         'weights': {

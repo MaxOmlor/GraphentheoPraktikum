@@ -10,24 +10,29 @@ import time
 import multiprocessing
 import tqdm
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 from src.fitch_utils import random_trees
 import warnings
-warnings.filterwarnings("ignore")
+# warnings.filterwarnings("ignore")
 
 
 def build_command(algorithm_parameters, runs_parameters, nodes, percentages, dists_present, dists_nonpresent, median, reciprocal):
-    command = "python3 ./src/benchmark/main.py" + algorithm_parameters + runs_parameters
-    command += " --quiet"
-    command += " --partial=" + str(percentages)
+    path = '''"c:/Users/Max/Documents/Studium/Leipzig/M 5. Semester/graphentheo/praktikum/GraphentheoPraktikum/venv/Scripts/python.exe" ./src/benchmark/main.py'''
+    command = path + algorithm_parameters + runs_parameters
+    # command = "python3 ./src/benchmark/main.py" + algorithm_parameters + runs_parameters
+    # command += " --quiet"
+    command += " --partial=\"" + str(percentages) + "\""
     command += " --prob_dist_present=\"" + str(dists_present) + "\""
     command += " --prob_dist_nonpresent=\"" + str(dists_nonpresent) + "\""
     command += " --input=\"./data_gen/trees/" + str(nodes) + ".txt\""
+    # command += " --input=\"../../data_gen/trees/" + str(nodes) + ".txt\""
     if median:
         command += " --median"
     if reciprocal:
         command += " --reciprocal"
     # build output file name
     output_file = "./data_gen/out/res"
+    # output_file = "../../data_gen/out/res"
     output_file += "_n" + str(nodes)
     # remove . from percentages
     output_file += "_p" + str(percentages).replace(".", "")
@@ -85,6 +90,7 @@ if __name__ == "__main__":
                         for n in nodes:
                             command_queue.append(build_command(algorithm_parameters, runs_parameters, n, percent, dist_p, dist_np, med, rep))
 
+    print(f'{command_queue[0]=}')
     count = len(percentages) * len(dists_present) * len(dists_nonpresent) * len(median) * len(reciprocal) * len(nodes)
     print("Total number of tests: " + str(count))
 

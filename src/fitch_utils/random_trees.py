@@ -6,7 +6,7 @@ import argparse
 # import make_partial
 import tqdm
 import fitch_utils.make_partial as make_partial
-#import make_partial
+# import make_partial
 
 
 # sys.path.append('fitch-graph-prak')
