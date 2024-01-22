@@ -15,6 +15,8 @@ import numpy as np
 np.seterr(all='ignore')
 import ast
 import warnings
+import re
+import numpy as np
 
 
 import preprocess
@@ -152,7 +154,7 @@ def run_benchmark(args):
             bar.close()
     
     ### create partials
-    partials = [make_partial(rel, args.partial) for rel in relations]
+    partials = [make_partial(rel, p) for p in parse_input_string_to_list(args.partial) for rel in relations]
     
     # chick if folder failed_graphs exists
     if not os.path.exists('failed_graphs'):
@@ -328,6 +330,56 @@ def convert_to_suitable_type(x):
             pass
     return x
 
+
+import re
+import numpy as np
+
+def parse_input_string_to_list(input_str):
+    '''
+    # Beispiele
+    input_str1 = '0.2'
+    input_str2 = '.5'
+    input_str3 = '0.002'
+    input_str4 = '[1, 2, 3]'
+    input_str5 = '[0:1:0.1]'
+    input_str6 = '[0:1:.1]'
+    input_str7 = '[0:100:20]'
+    input_str8 = '.'
+
+    print(parse_input_string_to_list(input_str1))  # Ausgabe: [0.2]
+    print(parse_input_string_to_list(input_str2))  # Ausgabe: [0.5]
+    print(parse_input_string_to_list(input_str3))  # Ausgabe: [0.002]
+    print(parse_input_string_to_list(input_str4))  # Ausgabe: [1.0, 2.0, 3.0]
+    print(parse_input_string_to_list(input_str5))  # Ausgabe: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    print(parse_input_string_to_list(input_str6))  # Ausgabe: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    print(parse_input_string_to_list(input_str7))  # Ausgabe: [0.0, 20.0, 40.0, 60.0, 80.0]
+    print(parse_input_string_to_list(input_str8))  # raises ValueError
+    '''
+    
+    # Option 1: Eine einzelne Zahl
+    if re.match(r'^(?:\d+(\.\d*)?|\.\d+)$', input_str):
+        return [float(input_str)]
+
+    # Option 2: Eine Liste von Zahlen
+    if re.match(r'^\[.*\]$', input_str):
+        input_str = input_str[1:-1]  # Klammern entfernen
+        numbers = re.findall(r'[-+]?\d*\.\d+|\d+', input_str)
+        return [float(num) for num in numbers]
+
+    # Option 3: Ein Slicing-Ausdruck
+    if re.match(r'^\[[-+]?\d*\.\d+|\d+:[-+]?\d*\.\d+|\d+:([-+]?\d*\.\d+|\d+)?:[-+]?\d*\.\d+|\d+\]$', input_str):
+        input_str = input_str[1:-1]  # Klammern entfernen
+        parts = input_str.split(':')
+        start = float(parts[0])
+        stop = float(parts[1])
+        step = float(parts[2]) if len(parts) == 3 else 1.0
+        return list(np.arange(start, stop, step))
+
+    # Wenn der Eingabestring kein derartiges Format hat, gib eine leere Liste zurück
+    raise ValueError('Invalid input string: ' + input_str)
+
+
+
 if False:
     # Beispielaufruf
     nested_dict = {
@@ -358,8 +410,8 @@ if __name__ == '__main__':
     parser.add_argument('--random_sum', action='store_true', help='Run random sum')
     parser.add_argument('--random_average', action='store_true', help='Run random average')
     # Probability distribution
-    parser.add_argument('--prob_dist_present', type=str, default='normal', help='Probability distribution')
-    parser.add_argument('--prob_dist_nonpresent', type=str, default='normal', help='Probability distribution')
+    parser.add_argument('--prob_dist_present', type=str, default='normal', help='Probability distribution for present edges')
+    parser.add_argument('--prob_dist_nonpresent', type=str, default='normal', help='Probability distribution for nonpresent edges')
     parser.add_argument('--median', action='store_true', default=False, help='Medial value')
     parser.add_argument('--reciprocal', action='store_true', default=False, help='Reciprocal value')
 
@@ -374,22 +426,23 @@ if __name__ == '__main__':
     parser.add_argument('--trees', action='store_true', help='Create trees')
 
     ### Min and Max
-    parser.add_argument('--min', type=int, default=5, help='Minimum number of leaves')
-    parser.add_argument('--max', type=int, default=math.inf, help='Maximum number of leaves')
+    parser.add_argument('--min', type=int, default=5, help='Minimum number of leaves [if tree flag is set]')
+    parser.add_argument('--max', type=int, default=math.inf, help='Maximum number of leaves [if tree flag is set]')
 
     ### Output file
-    parser.add_argument('--output',default="out.csv" , type=str, help='Output file')
+    parser.add_argument('--output',default=None , type=str, help='Output file')
 
     ### Partial percentage
-    parser.add_argument('--partial', type=float,default=.2, help='Percentage of partials')
+    parser.add_argument('--partial', type=str,default='.2', help='Percentage of partials. possible input formats: 0.2, [0.1, 0.2, 0.3], [0:1:0.1]. note for slicing the end num is excluded')
 
     ### Number of runs
-    parser.add_argument('--runs', type=int, default=1000, help='Number of runs')
+    parser.add_argument('--runs', type=int, default=1000, help='Number of runs [if tree flag is set]')
 
     ### quiet
     parser.add_argument('--quiet', action='store_true', help='Quiet mode')
 
     args = parser.parse_args()
+
 
     f = Figlet(font='slant')
     if not args.quiet:
@@ -403,5 +456,36 @@ if __name__ == '__main__':
             print('No input file or tree creation selected')
         sys.exit()
     results = run_benchmark(args)
-    dict_list_to_csv(results, args.output)
+
+    if args.output:
+        dict_list_to_csv(results, args.output)
+    else:
+        used_algs = []
+        if args.alg1:
+            used_algs.append('Alg1')
+        if args.alg2:
+            used_algs.append('Alg2')
+        if args.normal:
+            used_algs.append('Normal')
+        if args.louvain:
+            used_algs.append('Luvain')
+        if args.leiden:
+            used_algs.append('Leiden')
+        if args.greedy_sum:
+            used_algs.append('GreedySum')
+        if args.greedy_average:
+            used_algs.append('GreedyAverage')
+        if args.random_sum:
+            used_algs.append('RandomSum')
+        if args.random_average:
+            used_algs.append('RandomAverage')
+        used_algs_str = '_'.join(used_algs)
+
+        output_file = "out_"
+        output_file += f'input={os.path.basename(args.input).split(".")[0]}'
+        output_file += used_algs_str
+        output_file += f'partial={args.partial}'
+        output_file += ".csv"
+
+        dict_list_to_csv(results, output_file)
     
