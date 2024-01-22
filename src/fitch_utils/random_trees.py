@@ -157,11 +157,7 @@ def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool =
         found_non_duplicate = False
         while not found_non_duplicate:
             attempts += 1
-            #check if file already exists
-            filepath = path +  "/" + str(size)+ "/" + str(i) + ".graphml"
-            fullpath = os.path.abspath(filepath)
-            if os.path.isfile(fullpath) and not overwrite:
-                continue
+
             ### generate random cotree
             tree = generate_fitch_cotree()
             ### check for minimum size
@@ -186,6 +182,11 @@ def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool =
             #     if verbose:
             #         print(fullpath)
             ### save fitch graph
+                        #check if file already exists
+            filepath = path +  "/" + str(size)+ "/" + str(i) + ".graphml"
+            fullpath = os.path.abspath(filepath)
+            if os.path.isfile(fullpath) and not overwrite:
+                continue
             if fitch_graphs:
                 nx.write_graphml(tree, fullpath)
                 if verbose:
