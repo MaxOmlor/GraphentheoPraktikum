@@ -157,6 +157,7 @@ def run_benchmark(args):
         return
 
     ### get relations (with a tqdm loadbar)
+    invalid = 0
     if not args.load_dump:
         if not args.quiet:
             bar = tqdm(total=len(cotrees) + len(fitch_graphs), desc='load relations')
@@ -165,8 +166,9 @@ def run_benchmark(args):
             nodes = sum([tree.out_degree(node) == 0 for node in tree.nodes])
             fitch = lib.rel_to_fitch(rel, list(range(nodes)))
             if not lib.check_fitch_graph(fitch):
-                raise ValueError(f'Fitch graph is not valid {fitch=}')
-            relations.append(lib.cotree_to_rel(tree))
+                invalid += 1
+            else:
+                relations.append(lib.cotree_to_rel(tree))
             if not args.quiet:
                 bar.update(1)
         for fitch in fitch_graphs:
@@ -175,6 +177,7 @@ def run_benchmark(args):
                 bar.update(1)
         if not args.quiet:
             bar.close()
+    print (f'{invalid=} {len(relations)=}')
     
     ### create partials
     partial_values = parse_input_string_to_list(args.partial)
