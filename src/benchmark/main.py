@@ -161,6 +161,11 @@ def run_benchmark(args):
         if not args.quiet:
             bar = tqdm(total=len(cotrees) + len(fitch_graphs), desc='load relations')
         for tree in cotrees:
+            rel = lib.cotree_to_rel(tree)
+            nodes = sum([tree.out_degree(node) == 0 for node in tree.nodes])
+            fitch = lib.rel_to_fitch(rel, list(range(nodes)))
+            if not lib.check_fitch_graph(fitch):
+                raise ValueError(f'Fitch graph is not valid {fitch=}')
             relations.append(lib.cotree_to_rel(tree))
             if not args.quiet:
                 bar.update(1)
