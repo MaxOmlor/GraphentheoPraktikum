@@ -183,6 +183,10 @@ def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool =
             #         print(fullpath)
             ### save fitch graph
                         #check if file already exists
+
+            if not lib.check_fitch_graph(fitch):
+                raise Exception("Fitch graph is not valid!")
+            
             filepath = path +  "/" + str(size)+ "/" + str(i) + ".graphml"
             fullpath = os.path.abspath(filepath)
             if os.path.isfile(fullpath) and not overwrite:

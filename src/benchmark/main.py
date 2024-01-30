@@ -29,6 +29,9 @@ from fitch_utils.make_partial import make_partial
 sys.path.append('fitch-graph-prak')
 import lib
 
+sys.path.append('code_utils')
+from code_utils.log import log
+
 
 import math
 def create_tree_data(num_trees: int, min_size: int=0, max_size: int=math.inf):
@@ -101,7 +104,9 @@ def dump_json(data_dict: dict, file_path: str):
     try:
         with open(file_path, 'w') as f:
             json.dump(convert_tuples_to_strings(data_dict), f)
-    except:
+            log(f'Dumped {file_path}')
+    except Exception as e:
+        log(f'Failed to dump {file_path}, {data_dict=}, {e=}')
         raise ValueError(f'{data_dict=}')
 def dump_tree(tree: nx.Graph, file_path: str):
     nx.write_graphml(tree, file_path)
@@ -148,6 +153,7 @@ def run_benchmark(args):
     if len(cotrees) + len(fitch_graphs)== 0 and not args.load_dump:
         if not args.quiet:
             print('No trees found')
+        log('No trees found')
         return
 
     ### get relations (with a tqdm loadbar)
@@ -443,8 +449,8 @@ if __name__ == '__main__':
     parser.add_argument('--random_sum', action='store_true', help='Run random sum')
     parser.add_argument('--random_average', action='store_true', help='Run random average')
     # Probability distribution
-    parser.add_argument('--prob_dist_present', type=str, default='normal', help='Probability distribution for present edges')
-    parser.add_argument('--prob_dist_nonpresent', type=str, default='normal', help='Probability distribution for nonpresent edges')
+    parser.add_argument('--prob_dist_present', type=str, default='(1,0.1,1)', help='Probability distribution for present edges')
+    parser.add_argument('--prob_dist_nonpresent', type=str, default='(0.5,0.1,1)', help='Probability distribution for nonpresent edges')
     parser.add_argument('--median', action='store_true', default=False, help='Medial value')
     parser.add_argument('--reciprocal', action='store_true', default=False, help='Reciprocal value')
 

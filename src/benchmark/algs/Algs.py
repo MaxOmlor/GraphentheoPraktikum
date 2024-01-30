@@ -18,11 +18,11 @@ from fitch_utils import partitions
 from fitch_utils import louvain as our_louvain
 from fitch_utils import leiden
 
+from code_utils.log import log
+
 def run_func_gen(partition_func, scoring_func, dist_type):
     def return_func(data):
         weights = data['weights'][dist_type]
-        partition_func = partition_func
-        scoring_func = scoring_func
         
         dprint('########################')
         test = lib.partition_heuristic_scaffold(
@@ -33,8 +33,12 @@ def run_func_gen(partition_func, scoring_func, dist_type):
     return return_func
 
 def run_alg1(data):
-    print(f"{data['nodes']=}")
-    test = lib.algorithm_one(data['rel'],data['nodes'],data['order'])
+    print(f"{data['rel']=},\n{data['nodes']=},\n{data['order']=}")
+    try:
+        test = lib.algorithm_one(data['rel'],data['nodes'],data['order'])
+    except Exception as e:
+        log(f"Exception: {e}, {data['rel']=},\n{data['nodes']=},\n{data['order']=}")
+        raise e
     return lib.cotree_to_rel(test)
 
 def run_alg2_uniform(data):

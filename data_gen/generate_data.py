@@ -32,6 +32,9 @@ def build_command(algorithm_parameters, runs_parameters, nodes, percentages, dis
         command += " --reciprocal"
     # build output file name
     output_file = "./data_gen/out/res"
+    #check if out dir exists
+    if not os.path.isdir("./data_gen/out"):
+        os.mkdir("./data_gen/out")
     # output_file = "../../data_gen/out/res"
     output_file += "_n" + str(nodes)
     # remove . from percentages
@@ -55,8 +58,10 @@ def build_command(algorithm_parameters, runs_parameters, nodes, percentages, dis
     return command
 
 def run_command(command):
+    print(f'{command=}')
     #call subprocess quiet
-    subprocess.call(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # subprocess.call(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.call(command, shell=True, stdout=subprocess.DEVNULL)
                     
 
 #load .tests.json
@@ -97,9 +102,10 @@ if __name__ == "__main__":
                             command = build_command(algorithm_parameters, runs_parameters, n, percent, dist_p, dist_np, med, rep)
                             if command is not None:
                                 command_queue.append(build_command(algorithm_parameters, runs_parameters, n, percent, dist_p, dist_np, med, rep))
-
     print(f'{command_queue[0]=}')
+
     count = len(percentages) * len(dists_present) * len(dists_nonpresent) * len(median) * len(reciprocal) * len(nodes)
+    # count = len(command_queue)
     print("Total number of tests: " + str(count))
     print("Number of tests to run: " + str(len(command_queue)))
 
@@ -110,8 +116,8 @@ if __name__ == "__main__":
     # number of tests to run in total
     total = len(command_queue)
 
-
-    count = multiprocessing.cpu_count()
+    # count = multiprocessing.cpu_count()
+    count = 1
     pool = multiprocessing.Pool(count)
     for _ in tqdm.tqdm(pool.imap_unordered(run_command, command_queue), total=len(command_queue)):
         pass
