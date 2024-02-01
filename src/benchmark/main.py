@@ -166,16 +166,16 @@ def run_benchmark(args):
     if not args.load_dump:
         if not args.quiet:
             bar = tqdm(total=len(fitch_graphs), desc='load relations')
-        for tree in fitch_graphs:
-            nodes = sum([tree.out_degree(node) == 0 for node in tree.nodes])
+        # for tree in fitch_graphs:
+        #     nodes = sum([tree.out_degree(node) == 0 for node in tree.nodes])
 
-            fitch = lib.rel_to_fitch(rel, list(range(nodes)))
-            if not lib.check_fitch_graph(fitch):
-                invalid += 1
-            else:
-                relations.append(lib.cotree_to_rel(tree))
-            if not args.quiet:
-                bar.update(1)
+        #     fitch = lib.rel_to_fitch(rel, list(range(nodes)))
+        #     if not lib.check_fitch_graph(fitch):
+        #         invalid += 1
+        #     else:
+        #         relations.append(lib.cotree_to_rel(tree))
+        #     if not args.quiet:
+        #         bar.update(1)
         for fitch in fitch_graphs:
             relations.append(lib.graph_to_rel(fitch))
             if not args.quiet:
@@ -188,15 +188,15 @@ def run_benchmark(args):
     partial_values = parse_input_string_to_list(args.partial)
     print(f'{partial_values=}')
     if not args.quiet:
-        bar = tqdm(total=len(partial_values), desc='create partials')
+        bar = tqdm(total=len(partial_values)*len(relations), desc='create partials')
     partials = []
     for p in partial_values:
         for rel in relations:
             partials.append(make_partial(rel, p))
             # print(f'{rel=}')
             # print(f'{partials[-1]=}')
-        if not args.quiet:
-            bar.update(1)
+            if not args.quiet:
+                bar.update(1)
     
     # chick if folder failed_graphs exists
     if not os.path.exists('failed_graphs'):
