@@ -13,10 +13,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 from src.fitch_utils import random_trees
 import warnings
-# warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore")
 
 
-def build_command(algorithm_parameters, runs_parameters, nodes, percentages, dists_present, dists_nonpresent, median, reciprocal):
+def build_command(input_dir, output_dir, algorithm_parameters, runs_parameters, nodes, percentages, dists_present, dists_nonpresent, median, reciprocal):
     path = '''"c:/Users/Max/Documents/Studium/Leipzig/M 5. Semester/graphentheo/praktikum/GraphentheoPraktikum/venv/Scripts/python.exe" ./src/benchmark/main.py'''
     command = path + algorithm_parameters + runs_parameters
     # command = "python3 ./src/benchmark/main.py" + algorithm_parameters + runs_parameters
@@ -24,19 +24,32 @@ def build_command(algorithm_parameters, runs_parameters, nodes, percentages, dis
     command += " --partial=\"" + str(percentages) + "\""
     command += " --prob_dist_present=\"" + str(dists_present) + "\""
     command += " --prob_dist_nonpresent=\"" + str(dists_nonpresent) + "\""
-    command += " --input=\"./data_gen/trees/" + str(nodes) + ".txt\""
+    
+    # diese zeile ändern und graph-prak-GFH/testset einfügen
+    # command += " --input=\"./data_gen/trees/" + str(nodes) + ".txt\""
+    # if input dir is a file
+    # print(f'{input_dir=}')
+    if os.path.isfile(input_dir):
+        command += f" --input=\"{input_dir}\""
+    else:
+        input_path = os.path.join(input_dir, str(nodes) + ".txt")
+        command += f" --input=\"{input_path}\""
     # command += " --input=\"../../data_gen/trees/" + str(nodes) + ".txt\""
     if median:
         command += " --median"
     if reciprocal:
         command += " --reciprocal"
+
+
     # build output file name
-    output_file = "./data_gen/out/res"
+    # neuen out ordner definieren
+    output_file = os.path.join(output_dir, "res")
     #check if out dir exists
-    if not os.path.isdir("./data_gen/out"):
-        os.mkdir("./data_gen/out")
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
     # output_file = "../../data_gen/out/res"
-    output_file += "_n" + str(nodes)
+    if os.path.isdir(input_dir):
+        output_file += "_n" + str(nodes)
     # remove . from percentages
     output_file += "_p" + str(percentages).replace(".", "")
     output_file += "_dp" + str(dists_present).replace(".", "").replace(",", "_")
@@ -58,7 +71,7 @@ def build_command(algorithm_parameters, runs_parameters, nodes, percentages, dis
     return command
 
 def run_command(command):
-    print(f'{command=}')
+    # print(f'{command=}')
     #call subprocess quiet
     # subprocess.call(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     subprocess.call(command, shell=True, stdout=subprocess.DEVNULL)
@@ -70,10 +83,13 @@ with open('./data_gen/tests.json') as f:
 
 if __name__ == "__main__":
 
-## generate tree data
-    print("Generating tree data")
-    for size in tests['Nodes']:
-        random_trees.create_testset(tests["Runs"], "./data_gen/trees",True, False, size, False)
+    test_to_run = ['gen_data', 'gfh_data'][1]
+
+    if test_to_run == 'gen_data':
+        ## generate tree data
+        print("Generating tree data")
+        for size in tests['Nodes']:
+            random_trees.create_testset(tests["Runs"], "./data_gen/trees",True, False, size, False)
 
     #multiprocessing.freeze_support()
     algorithm_parameters = ""
@@ -92,19 +108,39 @@ if __name__ == "__main__":
     reciprocal = tests['Reciprocal']
 
     command_queue = []
+    input_dir, output_dir = None, None
+    if test_to_run == 'gen_data':
+        # gen data test
+        input_dir = './data_gen/trees'
+        output_dir = './data_gen/out'
 
-    for percent in percentages:
-        for dist_p in dists_present:
-            for dist_np in dists_nonpresent:
-                for med in median:
-                    for rep in reciprocal:
-                        for n in nodes:
-                            command = build_command(algorithm_parameters, runs_parameters, n, percent, dist_p, dist_np, med, rep)
+        for percent in percentages:
+            for dist_p in dists_present:
+                for dist_np in dists_nonpresent:
+                    for med in median:
+                        for rep in reciprocal:
+                            for n in nodes:
+                                command = build_command(input_dir, output_dir, algorithm_parameters, runs_parameters, n, percent, dist_p, dist_np, med, rep)
+                                if command is not None:
+                                    command_queue.append(command)
+
+    if test_to_run == 'gfh_data':
+        # gfh data test
+        input_dir = './graph-prak-GFH/testset.txt'
+        output_dir = './data_gen/out_gfh'
+
+        for percent in percentages:
+            for dist_p in dists_present:
+                for dist_np in dists_nonpresent:
+                    for med in median:
+                        for rep in reciprocal:
+                            command = build_command(input_dir, output_dir, algorithm_parameters, runs_parameters, None, percent, dist_p, dist_np, med, rep)
                             if command is not None:
-                                command_queue.append(build_command(algorithm_parameters, runs_parameters, n, percent, dist_p, dist_np, med, rep))
+                                command_queue.append(command)
+
     print(f'{command_queue[0]=}')
 
-    count = len(percentages) * len(dists_present) * len(dists_nonpresent) * len(median) * len(reciprocal) * len(nodes)
+    count = len(percentages) * len(dists_present) * len(dists_nonpresent) * len(median) * len(reciprocal) * (len(nodes) if test_to_run == 'gen_data' else 1)
     # count = len(command_queue)
     print("Total number of tests: " + str(count))
     print("Number of tests to run: " + str(len(command_queue)))
@@ -116,8 +152,8 @@ if __name__ == "__main__":
     # number of tests to run in total
     total = len(command_queue)
 
-    # count = multiprocessing.cpu_count()
-    count = 1
+    count = multiprocessing.cpu_count()
+    # count = 1
     pool = multiprocessing.Pool(count)
     for _ in tqdm.tqdm(pool.imap_unordered(run_command, command_queue), total=len(command_queue)):
         pass

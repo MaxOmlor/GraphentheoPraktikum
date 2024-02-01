@@ -33,7 +33,7 @@ def run_func_gen(partition_func, scoring_func, dist_type):
     return return_func
 
 def run_alg1(data):
-    print(f"{data['rel']=},\n{data['nodes']=},\n{data['order']=}")
+    # print(f"{data['rel']=},\n{data['nodes']=},\n{data['order']=}")
     try:
         test = lib.algorithm_one(data['rel'],data['nodes'],data['order'])
     except Exception as e:

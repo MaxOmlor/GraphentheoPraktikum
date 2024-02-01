@@ -174,6 +174,12 @@ def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool =
             fitch = generate_fitch_graph(tree)
             hashes.add(hashed)
             progress.update(1)
+
+            filepath = path +  "/" + str(size)+ "/" + str(i) + ".graphml"
+            fullpath = os.path.abspath(filepath)
+            if os.path.isfile(fullpath) and not overwrite:
+                continue
+            
             ### save cotree
             # if cotrees:
             #     filepath = path + "/cotrees/" + str(i) + ".graphml"
@@ -187,12 +193,8 @@ def create_testset(n: int, path: str, fitch_graphs: bool = True, cotrees: bool =
             if not lib.check_fitch_graph(fitch):
                 raise Exception("Fitch graph is not valid!")
             
-            filepath = path +  "/" + str(size)+ "/" + str(i) + ".graphml"
-            fullpath = os.path.abspath(filepath)
-            if os.path.isfile(fullpath) and not overwrite:
-                continue
             if fitch_graphs:
-                nx.write_graphml(tree, fullpath)
+                nx.write_graphml(fitch, fullpath)
                 if verbose:
                     print(fullpath)
     ## fill .txt file with all created tree paths

@@ -55,6 +55,7 @@ def get_tree_data_from_file(path: str):
     with open(path, 'r') as f:
         #for loop for file with tqdm
         for line in f.readlines():
+            # print(f'{line=}')
             line = line.strip()
             if line == '':
                 continue
@@ -129,48 +130,46 @@ def load_shit(file_name: str, dir_path='failed_graphs'):
 def run_benchmark(args):
     # setup
     ### create trees
-    cotrees = []
     fitch_graphs = []
-    if args.trees:
-        cotrees = create_tree_data(args.runs, min_size=args.min, max_size=args.max)
     if args.input and not args.load_dump:
         #todo: """temporary workaround"""
-        if os.path.isfile(args.input):
-            cotrees = get_tree_data_from_file(args.input)
-            print(f'{len(cotrees)=}')
+        # check if path in args.input exists
+        if not os.path.isfile(args.input):
+            raise ValueError(f'input path {args.input} does not exist')
+
+        # check if args.input has extension.txt
+        if os.path.splitext(args.input)[1].lower() == '.graphml':
+            fitch_graphs.append(nx.read_graphml(args.input))
+        elif os.path.isfile(args.input):
+            fitch_graphs = get_tree_data_from_file(args.input)
+            print(f'{len(fitch_graphs)=}')
         else:
             tree_file_list = find_files_with_extension(args.input, '.graphml')
             if not args.quiet:
                 bar = tqdm(total=len(tree_file_list), desc='load tree files')
-            cotrees = []
+            fitch_graphs = []
             for file in tree_file_list:
                 for tree in get_tree_data_from_file(file):
-                    cotrees.append(tree)
+                    fitch_graphs.append(tree)
                 if not args.quiet:
                     bar.update(1)
     relations = []
-        
-    if len(cotrees) + len(fitch_graphs)== 0 and not args.load_dump:
+
+    if len(fitch_graphs)== 0 and not args.load_dump:
         if not args.quiet:
             print('No trees found')
         log('No trees found')
-        return
+        raise ValueError('No trees found')
 
     ### get relations (with a tqdm loadbar)
     if not args.load_dump:
         if not args.quiet:
-            bar = tqdm(total=len(cotrees) + len(fitch_graphs), desc='load relations')
-        for tree in cotrees:
-            rel = lib.cotree_to_rel(tree)
+            bar = tqdm(total=len(fitch_graphs), desc='load relations')
+        for tree in fitch_graphs:
             nodes = sum([tree.out_degree(node) == 0 for node in tree.nodes])
-            fitch = lib.rel_to_fitch(rel, list(range(nodes)))
-            if not lib.check_fitch_graph(fitch):
+            if not lib.check_fitch_graph(tree):
                 raise ValueError(f'Fitch graph is not valid {fitch=}')
-            relations.append(lib.cotree_to_rel(tree))
-            if not args.quiet:
-                bar.update(1)
-        for fitch in fitch_graphs:
-            relations.append(lib.graph_to_rel(fitch))
+            relations.append(lib.graph_to_rel(tree))
             if not args.quiet:
                 bar.update(1)
         if not args.quiet:
@@ -216,38 +215,42 @@ def run_benchmark(args):
 
     else:
         alg_input_data = []
-        for partial, tree in zip(partials, cotrees):
-            leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
+        for partial, tree in zip(partials, fitch_graphs):
+            leaves = len(tree.nodes())
             data = preprocess.preprocess(partial, leaves, (0,1,2),{'present': dists_present, 'nonpresent': dists_nonpresent})
             alg_input_data.append(data)
         
-        test_data = list(zip(cotrees, relations, partials, alg_input_data))
+        test_data = list(zip(fitch_graphs, relations, partials, alg_input_data))
 
     # runinp
     ### run alg1
     results = []
     # for i in range(len(trees)):
     if not args.quiet:
-        pbar = tqdm(total=len(cotrees), desc='run benchmarks')
+        pbar = tqdm(total=len(fitch_graphs), desc='run benchmarks')
     for i, (tree, rel, partial, data) in enumerate(test_data):
         # print(f'{(tree, rel, partial, data)=}')
-        leaves = sum([tree.out_degree(node) == 0 for node in tree.nodes])
+        leaves = len(tree.nodes())
         tree_hash = hash(tree)
         if args.alg1:
             result = run_single_benchmark(Algs.run_alg1, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg1'})
+            print('alg1 done')
 
         if args.alg2:
             result = run_single_benchmark(Algs.run_alg2_uniform, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg2'})
+            print('alg2 done')
 
         if args.normal:
             result = run_single_benchmark(Algs.run_alg2_normal, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Alg2_normal'})
+            print('normal done')
 
         if args.louvain:
             result = run_single_benchmark(Algs.run_louvain, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Louvain'})
+            print('louvain done')
         
         if args.leiden:
             # try:
@@ -262,30 +265,37 @@ def run_benchmark(args):
             #         'partial': partial,
             #     }
             #  ''   dump_shit(info_dict, tree, file_name)
+            print('leiden done')
 
         if args.greedy_sum:
             result = run_single_benchmark(Algs.run_greedy_sum, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Greedy Sum'})
+            print('greedy sum done')
 
         if args.greedy_average:
             result = run_single_benchmark(Algs.run_greedy_average, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Greedy Average'})
+            print('greedy average done')
 
         if args.random_sum:
             result = run_single_benchmark(Algs.run_random_sum, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Random Sum'})
+            print('random sum')
 
         if args.random_average:
             result = run_single_benchmark(Algs.run_random_average, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Random Average'})
+            print('random average')
 
         if args.louvain_standard:
             result = run_single_benchmark(Algs.run_louvain_standard, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Louvain Lib'})
+            print('louvain standard done')
         
         if args.louvain_custom:
             result = run_single_benchmark(Algs.run_louvain_custom, data, rel, leaves)
             results.append({**result, 'tree': tree_hash, 'alg': 'Louvain Custom'})
+            print('louvain custom done')
 
         if args.dump:
             file_name = f'tree_{i}'
@@ -301,6 +311,8 @@ def run_benchmark(args):
             pbar.update(1)
     if not args.quiet:
         pbar.close()
+
+    print(f'{results=}')
     return results
 
 def convert_tuples_to_strings(d):
@@ -500,6 +512,7 @@ if __name__ == '__main__':
             print('No input file or tree creation selected')
         sys.exit()
     results = run_benchmark(args)
+    print(f'{results=}')
 
     if args.output:
         dict_list_to_csv(results, args.output)
