@@ -50,11 +50,14 @@ def create_tree_data(num_trees: int, min_size: int=0, max_size: int=math.inf):
     return trees
 
 ### reads the file, reads the paths in that file and loads those trees
-def get_tree_data_from_file(path: str):
+def get_tree_data_from_file(path: str, partition: tuple[int] = None):
     trees = []
     with open(path, 'r') as f:
         #for loop for file with tqdm
-        for line in f.readlines():
+        lines = list(f.readlines())
+        if partition:
+            lines = lines[partition[0]:partition[1]]
+        for line in lines:
             # print(f'{line=}')
             line = line.strip()
             if line == '':
@@ -141,7 +144,7 @@ def run_benchmark(args):
         if os.path.splitext(args.input)[1].lower() == '.graphml':
             fitch_graphs.append(nx.read_graphml(args.input))
         elif os.path.isfile(args.input):
-            fitch_graphs = get_tree_data_from_file(args.input)
+            fitch_graphs = get_tree_data_from_file(args.input, eval(args.partition))
             print(f'{len(fitch_graphs)=}')
         else:
             tree_file_list = find_files_with_extension(args.input, '.graphml')
@@ -486,6 +489,9 @@ if __name__ == '__main__':
 
     ### Input file
     parser.add_argument('--input', type=str, help='Input file')
+
+    ### partition
+    parser.add_argument('--partition', type=str, default='None', help='Partition the input file by providing a start (inclusiv) and a end (exclusiv) id. e.g. (0,1000)')
 
     ### Create trees flag
     parser.add_argument('--trees', action='store_true', help='Create trees')

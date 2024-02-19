@@ -16,7 +16,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-def build_command(input_dir, output_dir, algorithm_parameters, runs_parameters, nodes, percentages, dists_present, dists_nonpresent, median, reciprocal):
+def build_command(input_dir, output_dir, algorithm_parameters, runs_parameters, nodes, percentages, dists_present, dists_nonpresent, median, reciprocal, partition=None):
     path = '''"c:/Users/Max/Documents/Studium/Leipzig/M 5. Semester/graphentheo/praktikum/GraphentheoPraktikum/venv/Scripts/python.exe" ./src/benchmark/main.py'''
     command = path + algorithm_parameters + runs_parameters
     # command = "python3 ./src/benchmark/main.py" + algorithm_parameters + runs_parameters
@@ -35,10 +35,14 @@ def build_command(input_dir, output_dir, algorithm_parameters, runs_parameters, 
         input_path = os.path.join(input_dir, str(nodes) + ".txt")
         command += f" --input=\"{input_path}\""
     # command += " --input=\"../../data_gen/trees/" + str(nodes) + ".txt\""
-    if median:
-        command += " --median"
-    if reciprocal:
-        command += " --reciprocal"
+
+    if partition is not None:
+        command += f" --partition=\"{str(partition)}\""
+
+    # if median:
+    #     command += " --median"
+    # if reciprocal:
+    #     command += " --reciprocal"
 
 
     # build output file name
@@ -54,10 +58,12 @@ def build_command(input_dir, output_dir, algorithm_parameters, runs_parameters, 
     output_file += "_p" + str(percentages).replace(".", "")
     output_file += "_dp" + str(dists_present).replace(".", "").replace(",", "_")
     output_file += "_dnp" + str(dists_nonpresent).replace(".", "").replace(",", "_")
-    if median:
-        output_file += "_m"
-    if reciprocal:
-        output_file += "_r"
+    # if median:
+        # output_file += "_m"
+    # if reciprocal:
+        # output_file += "_r"
+    if partition is not None:
+        output_file += "_part" + str(partition[0]) + "-" + str(partition[1])
     output_file += ".csv"
 
     command += " --output=\"" + output_file + "\""
@@ -73,9 +79,28 @@ def build_command(input_dir, output_dir, algorithm_parameters, runs_parameters, 
 def run_command(command):
     # print(f'{command=}')
     #call subprocess quiet
-    # subprocess.call(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    subprocess.call(command, shell=True, stdout=subprocess.DEVNULL)
+    subprocess.call(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # subprocess.call(command, shell=True, stdout=subprocess.DEVNULL)
                     
+def partition_list(input_list, n):
+    if n <= 0:
+        raise ValueError("Die Anzahl der Partitionen (n) muss größer als 0 sein.")
+    
+    list_length = len(input_list)
+    partition_sizes = [list_length // n]*n
+    remainder = list_length % n
+    for i in range(remainder):
+        partition_sizes[i] += 1
+
+    partitions = []
+
+    for i in range(n):
+        start_index = sum(size for size in partition_sizes[:i])
+        end_index = sum(size for size in partition_sizes[:i+1])
+        partitions.append((start_index, end_index))
+
+    return partitions
+
 
 #load .tests.json
 with open('./data_gen/tests.json') as f:
@@ -129,18 +154,27 @@ if __name__ == "__main__":
         input_dir = './graph-prak-GFH/testset.txt'
         output_dir = './data_gen/out_gfh'
 
-        for percent in percentages:
-            for dist_p in dists_present:
-                for dist_np in dists_nonpresent:
-                    for med in median:
-                        for rep in reciprocal:
-                            command = build_command(input_dir, output_dir, algorithm_parameters, runs_parameters, None, percent, dist_p, dist_np, med, rep)
-                            if command is not None:
-                                command_queue.append(command)
+        # get number of lines in input file
+        num_graphs = None
+        with open(input_dir) as f:
+            lines = f.readlines()
+            num_graphs = len(lines)
+        
+        num_partitions = 35
+
+        for dist_np in dists_nonpresent:
+            for med in median:
+                for rep in reciprocal:
+                    for partition in partition_list(list(range(num_graphs)), num_partitions):
+                        for dist_p in dists_present:
+                            for percent in percentages:
+                                command = build_command(input_dir, output_dir, algorithm_parameters, runs_parameters, None, percent, dist_p, dist_np, med, rep, partition)
+                                if command is not None:
+                                    command_queue.append(command)
 
     print(f'{command_queue[0]=}')
 
-    count = len(percentages) * len(dists_present) * len(dists_nonpresent) * len(median) * len(reciprocal) * (len(nodes) if test_to_run == 'gen_data' else 1)
+    count = len(percentages) * len(dists_present) * len(dists_nonpresent) * len(median) * len(reciprocal) * (len(nodes) if test_to_run == 'gen_data' else 1) * (num_partitions if test_to_run == 'gfh_data' else 1)
     # count = len(command_queue)
     print("Total number of tests: " + str(count))
     print("Number of tests to run: " + str(len(command_queue)))
@@ -152,8 +186,9 @@ if __name__ == "__main__":
     # number of tests to run in total
     total = len(command_queue)
 
-    count = multiprocessing.cpu_count()
+    count = multiprocessing.cpu_count() - 1
     # count = 1
     pool = multiprocessing.Pool(count)
     for _ in tqdm.tqdm(pool.imap_unordered(run_command, command_queue), total=len(command_queue)):
         pass
+
